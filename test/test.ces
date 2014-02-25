@@ -1,0 +1,5 @@
+button#button $click {
+    background-color: blue;
+    color: red;
+    text: "Clicked";
+}
