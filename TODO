@@ -1,0 +1,9 @@
+Add CES properties coming from jQuery (text, html, classes).
+Add a way to apply the CSS properties on another element than the target.
+Add the subject selector (perhaps ! from CSS4) to allow changing properties of parent elements.
+Add a way to change HTML attributes (with a syntax like [disabled="disabled"];).
+Add a "this" keyword that could be use in the second selector (and in the properties?).
+Add tokens to add/remove/toggle (tokens +/-/~ ?) classes (and other things, for instance toggle visibility).
+Support basic operations (width: +=10px;).
+Add support for properties (like checked; is it really needed?).
+Add a way to prevent the default behavior (to stop navigating with a click on a link, for instance).
