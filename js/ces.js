@@ -33,6 +33,7 @@ String.prototype.endsWith = function(suffix) {
  * CES property / JavaScript attributes mapping.
  */
 var JsAttributes = {
+    'html': 'innerHTML',
     'text': 'textContent'
 };
 
@@ -40,19 +41,21 @@ var JsAttributes = {
  * State of the CES parsing.
  */
 var State = {
-    EVENT: 0,
-    PROPERTY_NAME: 1,
-    PROPERTY_VALUE: 2,
-    SELECTOR: 3
+    CSS_SELECTOR: 0,
+    EVENT: 1,
+    EVENT_SELECTOR: 2,
+    PROPERTY_NAME: 3,
+    PROPERTY_VALUE: 4
 };
 
 /*
  * Class to store the properties to change after an event on a selector.
  */
 function Action() {
+    this.cssSelector = '';
     this.event = '';
+    this.eventSelector = '';
     this.properties = [];
-    this.selector = '';
 }
 
 /*
@@ -79,16 +82,21 @@ function actions2js(actions) {
     var js = '';
     var propertyName;
     var propertyValue;
+    var selector = 'this';
     for(i = 0 ; i < actions.length ; ++i) {
-        js += 'document.querySelector("' + actions[i].selector + '").addEventListener("' + actions[i].event + '", function() {\n';
+        js += 'document.querySelector("' + actions[i].eventSelector + '").addEventListener("' + actions[i].event + '", function() {\n';
+        if(actions[i].cssSelector.length > 0) {
+            selector = 'element';
+            js += '    var element = document.querySelector("' + actions[i].cssSelector + '");\n';
+        }
         for(j = 0 ; j < actions[i].properties.length ; ++j) {
             propertyName = actions[i].properties[j].name;
             propertyValue = actions[i].properties[j].value;
             if(propertyName in JsAttributes) {
-                js += '    this.' + JsAttributes[propertyName] + ' = ' + propertyValue + ';\n';
+                js += '    ' + selector + '.' + JsAttributes[propertyName] + ' = ' + propertyValue + ';\n';
             }
             else {
-                js += '    this.style.setProperty("' + propertyName + '", "' + propertyValue + '");\n';
+                js += '    ' + selector + '.style.setProperty("' + propertyName + '", "' + propertyValue + '");\n';
             }
         }
         js += '}, false);\n';
@@ -138,7 +146,13 @@ function parseCES(source) {
     var i;
     var property = new Property();
     var start = 0;
-    var state = State.SELECTOR;
+    var state = State.EVENT_SELECTOR;
+
+    function getEvent() {
+        action.event = source.substring(start, i).trim();
+        start = i + 1;
+        state = State.CSS_SELECTOR;
+    }
 
     for(i = 0 ; i < source.length ; ++i) {
         if(source[i] == ':') {
@@ -149,15 +163,18 @@ function parseCES(source) {
             }
         }
         else if(source[i] == '$') {
-            if(state == State.SELECTOR) {
-                action.selector = source.substring(start, i).trim();
+            if(state == State.EVENT_SELECTOR) {
+                action.eventSelector = source.substring(start, i).trim();
                 start = i + 1;
                 state = State.EVENT;
             }
         }
         else if(source[i] == '{') {
             if(state == State.EVENT) {
-                action.event = source.substring(start, i).trim();
+                getEvent();
+            }
+            else if(state == State.CSS_SELECTOR) {
+                action.cssSelector = source.substring(start, i).trim();
                 start = i + 1;
                 state = State.PROPERTY_NAME;
             }
@@ -169,7 +186,8 @@ function parseCES(source) {
             if(state == State.PROPERTY_NAME) {
                 actions.push(action);
                 action = new Action();
-                state = State.SELECTOR;
+                state = State.EVENT_SELECTOR;
+                start = i + 1;
             }
             else {
                 var errorMessage = 'Unexpected "}", expecting "';
@@ -183,8 +201,8 @@ function parseCES(source) {
                     case State.PROPERTY_VALUE:
                         errorMessage += 'property value';
                         break;
-                    case State.SELECTOR:
-                        errorMessage += 'css selector';
+                    case State.EVENT_SELECTOR:
+                        errorMessage += 'event selector';
                         break;
                 }
                 errorMessage += '".';
@@ -200,6 +218,9 @@ function parseCES(source) {
 
                 property = new Property();
             }
+        }
+        else if(' ' == source[i] && State.EVENT == state) {
+            getEvent();
         }
     }
     return actions;

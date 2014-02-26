@@ -3,3 +3,11 @@ button#button $click {
     color: red;
     text: "Clicked";
 }
+
+#paragraph $click {
+    html: "<strong>Text</strong>";
+}
+
+#show $click #par {
+    display: block;
+}
