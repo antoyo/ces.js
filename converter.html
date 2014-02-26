@@ -37,9 +37,23 @@ THE SOFTWARE.
     <body>
         <h1>CES to JavaScript Converter</h1>
         <p>Select your CES files to convert and then click on Convert.</p>
-        <input type="file" multiple id="cesFiles"/>
-        <br/>
-        <button id="convertButton">Convert</button>
+        <form>
+            <input type="file" multiple id="cesFiles"/>
+            <br/>
+            <label for="jquery">jQuery</label>
+            <input type="checkbox" id="jquery"/>
+            <br/>
+            <label for="minify">Minify</label>
+            <input type="checkbox" id="minify"/>
+            <br/>
+            <label for="merge">Merge files</label>
+            <input type="checkbox" id="merge"/>
+            <br/>
+            <label for="event">Add load event listener</label>
+            <input type="checkbox" id="event"/>
+            <br/>
+            <button id="convertButton">Convert</button>
+        </form>
         <div id="links"></div>
     </body>
 </html>
