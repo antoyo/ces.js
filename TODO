@@ -1,5 +1,4 @@
 Add a way to change HTML attributes (with a syntax like [disabled="disabled"];).
-Add the subject selector (perhaps ! from CSS4) to allow changing properties of parent elements.
 Add a "this" keyword that could be use in the second selector.
 Add tokens to add/remove/toggle (tokens +/-/~ ?) classes using the classList attribute (and other things, for instance toggle visibility).
 Support basic operations (width: +=10px; text: += "text";).
@@ -15,5 +14,6 @@ Support for conditions via inner block. For instance:
     }
 }
 Add a way to prevent the default behavior (to stop navigating with a click on a link, for instance).
+Add the subject selector (perhaps ! from CSS4) to allow changing properties of parent elements.
 
 Add support for properties (like checked; is it really needed?).

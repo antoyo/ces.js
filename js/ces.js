@@ -41,34 +41,68 @@ var JsAttributes = {
  * State of the CES parsing.
  */
 var State = {
-    CSS_SELECTOR: 0,
-    EVENT: 1,
-    EVENT_SELECTOR: 2,
-    PROPERTY_NAME: 3,
-    PROPERTY_VALUE: 4
+    ATTRIBUTE_NAME: 0,
+    ATTRIBUTE_VALUE: 1,
+    CSS_SELECTOR: 2,
+    EVENT: 3,
+    EVENT_SELECTOR: 4,
+    PROPERTY_NAME: 5,
+    PROPERTY_VALUE: 6
 };
 
 /*
  * Class to store the properties to change after an event on a selector.
  */
 function Action() {
+    this.attributes = [];
     this.cssSelector = '';
+    this.cssProperties = [];
     this.event = '';
     this.eventSelector = '';
-    this.properties = [];
+    this.jsProperties = [];
 }
 
 /*
- * Add a property to the action.
+ * Add an HTML attribute to the action.
  */
-Action.prototype.add = function(property) {
-    this.properties.push(property);
+Action.prototype.addAttr = function(attribute) {
+    this.attributes.push(attribute);
+}
+
+/*
+ * Add a CSS property to the action.
+ */
+Action.prototype.addCss = function(property) {
+    this.cssProperties.push(property);
 };
 
 /*
- * Class to store a CSS/JS property.
+ * Add a JS property to the action.
  */
-function Property() {
+Action.prototype.addJs = function(property) {
+    this.jsProperties.push(property);
+};
+
+/*
+ * Class to store an HTML attribute.
+ */
+function Attribute() {
+    this.name = '';
+    this.value = '';
+}
+
+/*
+ * Class to store a CSS property.
+ */
+function CssProperty() {
+    this.name = '';
+    this.value = '';
+}
+
+/*
+ * Class to store a JS property.
+ */
+function JsProperty() {
     this.name = '';
     this.value = '';
 }
@@ -80,8 +114,8 @@ function actions2js(actions) {
     var i;
     var j;
     var js = '';
-    var propertyName;
-    var propertyValue;
+    var name;
+    var value;
     var selector = 'this';
     for(i = 0 ; i < actions.length ; ++i) {
         js += 'document.querySelector("' + actions[i].eventSelector + '").addEventListener("' + actions[i].event + '", function() {\n';
@@ -89,15 +123,20 @@ function actions2js(actions) {
             selector = 'element';
             js += '    var element = document.querySelector("' + actions[i].cssSelector + '");\n';
         }
-        for(j = 0 ; j < actions[i].properties.length ; ++j) {
-            propertyName = actions[i].properties[j].name;
-            propertyValue = actions[i].properties[j].value;
-            if(propertyName in JsAttributes) {
-                js += '    ' + selector + '.' + JsAttributes[propertyName] + ' = ' + propertyValue + ';\n';
-            }
-            else {
-                js += '    ' + selector + '.style.setProperty("' + propertyName + '", "' + propertyValue + '");\n';
-            }
+        for(j = 0 ; j < actions[i].cssProperties.length ; ++j) {
+            name = actions[i].cssProperties[j].name;
+            value = actions[i].cssProperties[j].value;
+            js += '    ' + selector + '.style.setProperty("' + name + '", "' + value + '");\n';
+        }
+        for(j = 0 ; j < actions[i].jsProperties.length ; ++j) {
+            name = actions[i].jsProperties[j].name;
+            value = actions[i].jsProperties[j].value;
+            js += '    ' + selector + '.' + JsAttributes[name] + ' = ' + value + ';\n';
+        }
+        for(j = 0 ; j < actions[i].attributes.length ; ++j) {
+            name = actions[i].attributes[j].name;
+            value = actions[i].attributes[j].value;
+            js += '    ' + selector + '.setAttribute("' + name + '", "' + value + '");\n';
         }
         js += '}, false);\n';
     }
@@ -138,15 +177,42 @@ function execute(js) {
 }
 
 /*
+ * Get the error message for an unexpected token.
+ */
+function getUnexpectedTokenErrorMessage(token, state) {
+    var errorMessage = 'Unexpected "' + token + '", expecting "';
+    switch(state) {
+        case State.EVENT:
+            errorMessage += '$event';
+            break;
+        case State.PROPERTY_NAME:
+            errorMessage += 'property name';
+            break;
+        case State.PROPERTY_VALUE:
+            errorMessage += 'property value';
+            break;
+        case State.EVENT_SELECTOR:
+            errorMessage += 'event selector';
+            break;
+    }
+    errorMessage += '".';
+    return errorMessage;
+}
+
+/*
  * Parse the Cascading Event Sheet and return the resulting JavaScript source code.
  */
 function parseCES(source) {
     var action = new Action();
     var actions = [];
+    var attribute = new Attribute();
+    var endsWithQuote = false;
     var i;
-    var property = new Property();
+    var cssProperty = new CssProperty();
+    var jsProperty = new JsProperty();
     var start = 0;
     var state = State.EVENT_SELECTOR;
+    var token = '';
 
     function getEvent() {
         action.event = source.substring(start, i).trim();
@@ -157,7 +223,13 @@ function parseCES(source) {
     for(i = 0 ; i < source.length ; ++i) {
         if(source[i] == ':') {
             if(state == State.PROPERTY_NAME) {
-                property.name = source.substring(start, i).trim();
+                token = source.substring(start, i).trim();
+                if(token in JsAttributes) {
+                    jsProperty.name = token;
+                }
+                else {
+                    cssProperty.name = token;
+                }
                 state = State.PROPERTY_VALUE;
                 start = i + 1;
             }
@@ -190,33 +262,61 @@ function parseCES(source) {
                 start = i + 1;
             }
             else {
-                var errorMessage = 'Unexpected "}", expecting "';
-                switch(state) {
-                    case State.EVENT:
-                        errorMessage += '$event';
-                        break;
-                    case State.PROPERTY_NAME:
-                        errorMessage += 'property name';
-                        break;
-                    case State.PROPERTY_VALUE:
-                        errorMessage += 'property value';
-                        break;
-                    case State.EVENT_SELECTOR:
-                        errorMessage += 'event selector';
-                        break;
-                }
-                errorMessage += '".';
-                throw errorMessage;
+                throw getUnexpectedTokenErrorMessage(source[i], state);
             }
         }
         else if(source[i] == ';') {
             if(state == State.PROPERTY_VALUE) {
-                property.value = source.substring(start, i).trim();
-                action.add(property);
+                if(cssProperty.name.length > 0) {
+                    cssProperty.value = source.substring(start, i).trim();
+                    action.addCss(cssProperty);
+                    cssProperty = new CssProperty();
+                }
+                else if(jsProperty.name.length > 0) {
+                    jsProperty.value = source.substring(start, i).trim();
+                    action.addJs(jsProperty);
+                    jsProperty = new JsProperty();
+                }
                 start = i + 1;
                 state = State.PROPERTY_NAME;
-
-                property = new Property();
+            }
+        }
+        else if('[' == source[i]) {
+            if(State.PROPERTY_NAME == state) {
+                state = State.ATTRIBUTE_NAME;
+                start = i + 1;
+            }
+        }
+        else if('=' == source[i]) {
+            if(State.ATTRIBUTE_NAME == state) {
+                attribute.name = source.substring(start, i).trim();
+                start = i + 1;
+                state = State.ATTRIBUTE_VALUE;
+            }
+            else {
+                throw getUnexpectedTokenErrorMessage(source[i], state);
+            }
+        }
+        else if(']' == source[i]) {
+            if(State.ATTRIBUTE_VALUE) {
+                attribute.value = source.substring(start, i).trim();
+                endsWithQuote = attribute.value[attribute.value.length - 1] == '"';
+                if(attribute.value[0] == '"') {
+                    attribute.value = attribute.value.substring(1, attribute.value.length - 1);
+                }
+                else {
+                    throw 'Unexpected "' + attribute.value + '", expecting "attribute".';
+                }
+                if(!endsWithQuote) {
+                    throw 'Unexpected "]", expecting """ (quote).';
+                }
+                start = i + 1;
+                state = State.PROPERTY_NAME;
+                action.addAttr(attribute);
+                attribute = new Attribute();
+            }
+            else {
+                throw getUnexpectedTokenErrorMessage(source[i], state);
             }
         }
         else if(' ' == source[i] && State.EVENT == state) {

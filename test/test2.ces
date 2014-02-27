@@ -1,0 +1,11 @@
+#button2 $click {
+    [disabled="disabled"];
+}
+
+#textInput $focus {
+    [placeholder="Placeholder"];
+}
+
+#textInput $blur {
+    [placeholder=""];
+}
