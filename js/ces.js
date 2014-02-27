@@ -56,6 +56,7 @@ var State = {
  */
 function Action() {
     this.attributes = [];
+    this.cssClasses = [];
     this.cssSelector = '';
     this.cssProperties = [];
     this.event = '';
@@ -69,6 +70,13 @@ function Action() {
 Action.prototype.addAttr = function(attribute) {
     this.attributes.push(attribute);
 }
+
+/*
+ * Add a CSS class change to the action.
+ */
+Action.prototype.addClass = function(cssClass) {
+    this.cssClasses.push(cssClass);
+};
 
 /*
  * Add a CSS property to the action.
@@ -94,6 +102,14 @@ function Attribute() {
 }
 
 /*
+ * Class to store a CSS class add/remove/toggle action.
+ */
+function CssClass() {
+    this.action = 'add';
+    this.name = '';
+}
+
+/*
  * Class to store a CSS property.
  */
 function CssProperty() {
@@ -113,6 +129,7 @@ function JsProperty() {
  * Convert the CES actions to JavaScript.
  */
 function actions2js(actions) {
+    var action;
     var i;
     var j;
     var js = '';
@@ -120,33 +137,37 @@ function actions2js(actions) {
     var value;
     var selector;
     for(i = 0 ; i < actions.length ; ++i) {
-        js += 'document.querySelector("' + actions[i].eventSelector + '").addEventListener("' + actions[i].event + '", function() {\n';
-        if(actions[i].cssSelector.length > 0) {
+        action = actions[i];
+        js += 'document.querySelector("' + action.eventSelector + '").addEventListener("' + action.event + '", function() {\n';
+        if(action.cssSelector.length > 0) {
             selector = 'element';
-            js += '    var element = document.querySelector("' + actions[i].cssSelector + '");\n';
+            js += '    var element = document.querySelector("' + action.cssSelector + '");\n';
         }
         else {
             selector = 'this';
         }
-        for(j = 0 ; j < actions[i].cssProperties.length ; ++j) {
-            name = actions[i].cssProperties[j].name;
-            value = actions[i].cssProperties[j].value;
+        for(j = 0 ; j < action.cssProperties.length ; ++j) {
+            name = action.cssProperties[j].name;
+            value = action.cssProperties[j].value;
             js += '    ' + selector + '.style.setProperty("' + name + '", "' + value + '");\n';
         }
-        for(j = 0 ; j < actions[i].jsProperties.length ; ++j) {
-            name = actions[i].jsProperties[j].name;
-            value = actions[i].jsProperties[j].value;
+        for(j = 0 ; j < action.jsProperties.length ; ++j) {
+            name = action.jsProperties[j].name;
+            value = action.jsProperties[j].value;
             js += '    ' + selector + '.' + JsAttributes[name] + ' = ' + value + ';\n';
         }
-        for(j = 0 ; j < actions[i].attributes.length ; ++j) {
-            name = actions[i].attributes[j].name;
-            if(actions[i].attributes[j].remove) {
+        for(j = 0 ; j < action.attributes.length ; ++j) {
+            name = action.attributes[j].name;
+            if(action.attributes[j].remove) {
                 js += '    ' + selector + '.removeAttribute("' + name + '");\n';
             }
             else {
-                value = actions[i].attributes[j].value;
+                value = action.attributes[j].value;
                 js += '    ' + selector + '.setAttribute("' + name + '", "' + value + '");\n';
             }
+        }
+        for(j = 0 ; j < action.cssClasses.length ; ++j) {
+            js += '    ' + selector + '.classList.' + action.cssClasses[j].action + '("' + action.cssClasses[j].name + '");\n';
         }
         js += '}, false);\n';
     }
@@ -221,9 +242,12 @@ function parseCES(source, url) {
     var action = new Action();
     var actions = [];
     var attribute = new Attribute();
+    var classAction = 'add';
+    var cssClass = new CssClass();
+    var cssProperty = new CssProperty();
     var endsWithQuote = false;
     var i;
-    var cssProperty = new CssProperty();
+    var isClassList = false;
     var lineNumber = 1;
     var jsProperty = new JsProperty();
     var removeAttribute = false;
@@ -241,7 +265,10 @@ function parseCES(source, url) {
         if(source[i] == ':') {
             if(state == State.PROPERTY_NAME) {
                 token = source.substring(start, i).trim();
-                if(token in JsAttributes) {
+                if(token == 'classes') {
+                    isClassList = true;
+                }
+                else if(token in JsAttributes) {
                     jsProperty.name = token;
                 }
                 else {
@@ -284,7 +311,15 @@ function parseCES(source, url) {
         }
         else if(source[i] == ';') {
             if(state == State.PROPERTY_VALUE) {
-                if(cssProperty.name.length > 0) {
+                if(isClassList) {
+                    cssClass.name = source.substring(start, i).trim();
+                    cssClass.action = classAction;
+                    action.addClass(cssClass);
+                    cssClass = new CssClass();
+                    classAction = 'add';
+                    isClassList = false;
+                }
+                else if(cssProperty.name.length > 0) {
                     cssProperty.value = source.substring(start, i).trim();
                     action.addCss(cssProperty);
                     cssProperty = new CssProperty();
@@ -354,6 +389,28 @@ function parseCES(source, url) {
                 start = i + 1;
                 removeAttribute = true;
             }
+            else if(State.PROPERTY_VALUE == state) {
+                classAction = 'remove';
+                start = i + 1;
+            }
+        }
+        else if('+' == source[i]) {
+            if(State.PROPERTY_VALUE == state) {
+                classAction = 'add';
+                start = i + 1;
+            }
+            else {
+                throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
+            }
+        }
+        else if('!' == source[i]) {
+            if(State.PROPERTY_VALUE == state) {
+                classAction = 'toggle';
+                start = i + 1;
+            }
+            else {
+                throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
+            }
         }
         else if(' ' == source[i] && State.EVENT == state) {
             getEvent();
@@ -372,14 +429,14 @@ function processLinkTags() {
     var linkTags = document.getElementsByTagName('link');
     var i;
     for(i = 0 ; i < linkTags.length ; ++i) {
-        var url = linkTags[i].href;
-        var relativeUrl = linkTags[i].getAttribute('href');
-        if(url.endsWith('.ces')) {
-            download(url, function(source) {
-                var js = ces2js(source, relativeUrl);
-                execute(js);
-            });
-        }
+        (function(url, relativeUrl) {
+            if(url.endsWith('.ces')) {
+                download(url, function(source) {
+                    var js = ces2js(source, relativeUrl);
+                    execute(js);
+                });
+            }
+        })(linkTags[i].href, linkTags[i].getAttribute('href'));
     }
 }
 

@@ -1,0 +1,3 @@
+#show $click {
+    classes: +blue;
+}
