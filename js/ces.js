@@ -47,7 +47,8 @@ var State = {
     EVENT: 3,
     EVENT_SELECTOR: 4,
     PROPERTY_NAME: 5,
-    PROPERTY_VALUE: 6
+    PROPERTY_VALUE: 6,
+    REMOVE_ATTRIBUTE: 7
 };
 
 /*
@@ -88,6 +89,7 @@ Action.prototype.addJs = function(property) {
  */
 function Attribute() {
     this.name = '';
+    this.remove = false;
     this.value = '';
 }
 
@@ -116,12 +118,15 @@ function actions2js(actions) {
     var js = '';
     var name;
     var value;
-    var selector = 'this';
+    var selector;
     for(i = 0 ; i < actions.length ; ++i) {
         js += 'document.querySelector("' + actions[i].eventSelector + '").addEventListener("' + actions[i].event + '", function() {\n';
         if(actions[i].cssSelector.length > 0) {
             selector = 'element';
             js += '    var element = document.querySelector("' + actions[i].cssSelector + '");\n';
+        }
+        else {
+            selector = 'this';
         }
         for(j = 0 ; j < actions[i].cssProperties.length ; ++j) {
             name = actions[i].cssProperties[j].name;
@@ -135,8 +140,13 @@ function actions2js(actions) {
         }
         for(j = 0 ; j < actions[i].attributes.length ; ++j) {
             name = actions[i].attributes[j].name;
-            value = actions[i].attributes[j].value;
-            js += '    ' + selector + '.setAttribute("' + name + '", "' + value + '");\n';
+            if(actions[i].attributes[j].remove) {
+                js += '    ' + selector + '.removeAttribute("' + name + '");\n';
+            }
+            else {
+                value = actions[i].attributes[j].value;
+                js += '    ' + selector + '.setAttribute("' + name + '", "' + value + '");\n';
+            }
         }
         js += '}, false);\n';
     }
@@ -147,8 +157,8 @@ function actions2js(actions) {
 /*
  * Convert the CES to JavaScript.
  */
-function ces2js(source) {
-    var actions = parseCES(source);
+function ces2js(source, url) {
+    var actions = parseCES(source, url);
     return actions2js(actions);
 }
 
@@ -179,9 +189,12 @@ function execute(js) {
 /*
  * Get the error message for an unexpected token.
  */
-function getUnexpectedTokenErrorMessage(token, state) {
-    var errorMessage = 'Unexpected "' + token + '", expecting "';
+function getUnexpectedTokenErrorMessage(token, state, lineNumber, url) {
+    var errorMessage = url + ':' + lineNumber + ': Unexpected `' + token + '`, expecting `';
     switch(state) {
+        case State.ATTRIBUTE_NAME:
+            errorMessage += '="attribute value"';
+            break;
         case State.EVENT:
             errorMessage += '$event';
             break;
@@ -194,22 +207,26 @@ function getUnexpectedTokenErrorMessage(token, state) {
         case State.EVENT_SELECTOR:
             errorMessage += 'event selector';
             break;
+        default:
+            console.log(state);
     }
-    errorMessage += '".';
+    errorMessage += '` on line ' + lineNumber + '.';
     return errorMessage;
 }
 
 /*
  * Parse the Cascading Event Sheet and return the resulting JavaScript source code.
  */
-function parseCES(source) {
+function parseCES(source, url) {
     var action = new Action();
     var actions = [];
     var attribute = new Attribute();
     var endsWithQuote = false;
     var i;
     var cssProperty = new CssProperty();
+    var lineNumber = 1;
     var jsProperty = new JsProperty();
+    var removeAttribute = false;
     var start = 0;
     var state = State.EVENT_SELECTOR;
     var token = '';
@@ -251,7 +268,7 @@ function parseCES(source) {
                 state = State.PROPERTY_NAME;
             }
             else {
-                throw 'Unexpected "{", expecting "$event".';
+                throw url + ':' + lineNumber + ': Unexpected `{`, expecting `$event` on line ' + lineNumber + '.';
             }
         }
         else if(source[i] == '}') {
@@ -262,7 +279,7 @@ function parseCES(source) {
                 start = i + 1;
             }
             else {
-                throw getUnexpectedTokenErrorMessage(source[i], state);
+                throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
             }
         }
         else if(source[i] == ';') {
@@ -294,21 +311,34 @@ function parseCES(source) {
                 state = State.ATTRIBUTE_VALUE;
             }
             else {
-                throw getUnexpectedTokenErrorMessage(source[i], state);
+                throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
             }
         }
         else if(']' == source[i]) {
-            if(State.ATTRIBUTE_VALUE) {
+            if(State.ATTRIBUTE_NAME == state) {
+                if(removeAttribute) {
+                    attribute.name = source.substring(start, i);
+                    attribute.remove = true;
+                    start = i + 1;
+                    state = State.PROPERTY_NAME;
+                    action.addAttr(attribute);
+                    attribute = new Attribute();
+                }
+                else {
+                    throw url + ':' + lineNumber + ': Unexpected `]`, expecting `"attribute value"` on line ' + lineNumber + '.';
+                }
+            }
+            else if(State.ATTRIBUTE_VALUE == state) {
                 attribute.value = source.substring(start, i).trim();
                 endsWithQuote = attribute.value[attribute.value.length - 1] == '"';
                 if(attribute.value[0] == '"') {
                     attribute.value = attribute.value.substring(1, attribute.value.length - 1);
                 }
                 else {
-                    throw 'Unexpected "' + attribute.value + '", expecting "attribute".';
+                    throw url + ':' + lineNumber + ': Unexpected `' + attribute.value + '`, expecting `"attribute value"` on line ' + lineNumber + '.';
                 }
                 if(!endsWithQuote) {
-                    throw 'Unexpected "]", expecting """ (quote).';
+                    throw url + ':' + lineNumber + ': Unexpected `]`, expecting `"` (quote) on line ' + lineNumber + '.';
                 }
                 start = i + 1;
                 state = State.PROPERTY_NAME;
@@ -316,11 +346,20 @@ function parseCES(source) {
                 attribute = new Attribute();
             }
             else {
-                throw getUnexpectedTokenErrorMessage(source[i], state);
+                throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
+            }
+        }
+        else if('-' == source[i]) {
+            if(State.ATTRIBUTE_NAME == state) {
+                start = i + 1;
+                removeAttribute = true;
             }
         }
         else if(' ' == source[i] && State.EVENT == state) {
             getEvent();
+        }
+        else if('\n' == source[i]) {
+            ++lineNumber;
         }
     }
     return actions;
@@ -334,9 +373,10 @@ function processLinkTags() {
     var i;
     for(i = 0 ; i < linkTags.length ; ++i) {
         var url = linkTags[i].href;
+        var relativeUrl = linkTags[i].getAttribute('href');
         if(url.endsWith('.ces')) {
             download(url, function(source) {
-                var js = ces2js(source);
+                var js = ces2js(source, relativeUrl);
                 execute(js);
             });
         }

@@ -2,6 +2,10 @@
     [disabled="disabled"];
 }
 
+#enableButton $click #button2 {
+    [-disabled];
+}
+
 #textInput $focus {
     [placeholder="Placeholder"];
 }
