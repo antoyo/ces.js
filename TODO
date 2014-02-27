@@ -1,6 +1,3 @@
-Add a way to delete HTML attributes with this syntax (is it really needed?):
-[-disabled];
-
 Add a "this" keyword that could be use in the second selector.
 Add tokens to add/remove/toggle (tokens +/-/~ ?) classes using the classList attribute (and other things, for instance toggle visibility).
 Support basic operations (width: +=10px; text: += "text";).
