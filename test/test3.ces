@@ -1,3 +1,11 @@
 #show $click {
     classes: +blue;
 }
+
+#remove $click #show {
+    classes: -blue;
+}
+
+#toggle $click #show {
+    classes: !blue;
+}
