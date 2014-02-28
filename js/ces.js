@@ -412,8 +412,20 @@ function parseCES(source, url) {
                 throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
             }
         }
-        else if(' ' == source[i] && State.EVENT == state) {
-            getEvent();
+        else if(' ' == source[i]) {
+            if(State.EVENT == state) {
+                getEvent();
+            }
+            else if(State.PROPERTY_VALUE == state && isClassList) {
+                cssClass.name = source.substring(start, i).trim();
+
+                if(cssClass.name.length > 0) {
+                    cssClass.action = classAction;
+                    action.addClass(cssClass);
+                    cssClass = new CssClass();
+                    classAction = 'add';
+                }
+            }
         }
         else if('\n' == source[i]) {
             ++lineNumber;

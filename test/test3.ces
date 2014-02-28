@@ -9,3 +9,11 @@
 #toggle $click #show {
     classes: !blue;
 }
+
+#add $click #text {
+    classes: -big -backred +underline;
+}
+
+#change $click #text {
+    classes: +big +backred -underline !italic;
+}

@@ -5,3 +5,19 @@
 .blue {
     color: blue;
 }
+
+.big {
+    font-size: xx-large;
+}
+
+.underline {
+    text-decoration: underline;
+}
+
+.backred {
+    background-color: red;
+}
+
+.italic {
+    font-style: italic;
+}
