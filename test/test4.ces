@@ -1,0 +1,3 @@
+#animate $click #animated {
+    animation: animation 5s;
+}

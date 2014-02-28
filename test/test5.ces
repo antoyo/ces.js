@@ -1,0 +1,7 @@
+#check $click #checkbox {
+    [checked];
+}
+
+#uncheck $click #checkbox {
+    [-checked];
+}

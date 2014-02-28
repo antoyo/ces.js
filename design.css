@@ -21,3 +21,23 @@
 .italic {
     font-style: italic;
 }
+
+#animated {
+    //background:red;
+    height:100px;
+    width:100px;
+}
+
+@keyframes animation
+{
+    from {
+        background: red;
+        height: 100px;
+        width: 100px;
+    }
+    to {
+        background: yellow;
+        height: 200px;
+        width: 300px;
+    }
+}

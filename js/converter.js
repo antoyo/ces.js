@@ -34,7 +34,7 @@ window.addEventListener('load', function() {
 
             reader.addEventListener('load', function() {
                 var link = document.createElement('a');
-                var source = ces2js(reader.result);
+                var source = ces.ces2js(reader.result);
                 source = 'window.addEventListener("load", function() {\n' + source + '}, false);';
                 var blob = new Blob([source], {type: 'text/plain'});
                 var filename = file.name.replace('.ces', '.js');

@@ -1,4 +1,5 @@
-Add tokens to add/remove/toggle (tokens +/-/! ?) classes using the classList attribute (and other things, for instance toggle visibility).
+Put the code into a namespace (with a global object to have the ability to use it in the converter and the tests).
+Add qunit tests with blanket.js coverage.
 Add a "this" keyword that could be use in the second selector.
 Support basic operations (width: +=10px; text: += "text";).
 
