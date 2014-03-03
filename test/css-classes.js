@@ -1,5 +1,5 @@
 asyncTest('CSS Classes', function() {
-    expect(7);
+    expect(28);
 
     ces.download('test3.ces', function(source) {
         var body = document.querySelector('#qunit-fixture');
@@ -31,30 +31,63 @@ asyncTest('CSS Classes', function() {
 
         var text = document.createElement('p');
         text.id = 'text';
+        text.classList.add('backred');
+        text.classList.add('big');
         body.appendChild(text);
 
         var js = ces.ces2js(source, 'test3.ces');
         ces.execute(js);
 
         equal(showButton.classList.length, 0, 'Class list is empty.');
+        ok(!showButton.classList.contains('blue'), 'Class blue is not set.');
 
         trigger(showButton, 'click');
 
-        equal(showButton.classList.length, 1, 'Class list is not empty.');
-        equal(showButton.classList[0], 'blue', 'Class blue is set.');
+        equal(showButton.classList.length, 1, 'Class list contains 1 element.');
+        ok(showButton.classList.contains('blue'), 'Class blue is set.');
 
         trigger(removeButton, 'click');
 
         equal(showButton.classList.length, 0, 'Class list is empty.');
+        ok(!showButton.classList.contains('blue'), 'Class blue is not set.');
 
         trigger(toggleButton, 'click');
 
-        equal(showButton.classList.length, 1, 'Class list is not empty.');
-        equal(showButton.classList[0], 'blue', 'Class blue is set.');
+        equal(showButton.classList.length, 1, 'Class list contains 1 element.');
+        ok(showButton.classList.contains('blue'), 'Class blue is set.');
 
         trigger(toggleButton, 'click');
 
         equal(showButton.classList.length, 0, 'Class list is empty.');
+        ok(!showButton.classList.contains('blue'), 'Class blue is not set.');
+
+        equal(text.classList.length, 2, 'Class list contains 2 elements.');
+        ok(text.classList.contains('backred'), 'Class backred is set.');
+        ok(text.classList.contains('big'), 'Class big is set.');
+        ok(!text.classList.contains('underline'), 'Class underline is not set.');
+
+        trigger(addButton, 'click');
+
+        equal(text.classList.length, 1, 'Class list contains 1 element.');
+        ok(!text.classList.contains('backred'), 'Class backred is not set.');
+        ok(!text.classList.contains('big'), 'Class big is not set.');
+        ok(text.classList.contains('underline'), 'Class underline is set.');
+
+        trigger(changeButton, 'click');
+
+        equal(text.classList.length, 3, 'Class list contains 3 elements.');
+        ok(text.classList.contains('backred'), 'Class backred is set.');
+        ok(text.classList.contains('big'), 'Class big is set.');
+        ok(text.classList.contains('italic'), 'Class italic is set.');
+        ok(!text.classList.contains('underline'), 'Class underline is not set.');
+
+        trigger(changeButton, 'click');
+
+        equal(text.classList.length, 2, 'Class list contains 2 elements.');
+        ok(text.classList.contains('backred'), 'Class backred is set.');
+        ok(text.classList.contains('big'), 'Class big is set.');
+        ok(!text.classList.contains('italic'), 'Class italic is not set.');
+        ok(!text.classList.contains('underline'), 'Class underline is not set.');
 
         start();
     });

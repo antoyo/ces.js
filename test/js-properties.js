@@ -1,5 +1,5 @@
 asyncTest('JS Properties', function() {
-    expect(2);
+    expect(4);
 
     ces.download('test.ces', function(source) {
         var body = document.querySelector('#qunit-fixture');
@@ -33,6 +33,12 @@ asyncTest('JS Properties', function() {
         trigger(button, 'click');
 
         equal(button.textContent, 'Clicked', 'Text is set to "Clicked".');
+
+        equal(paragraph.innerHTML, 'Paragraph', 'HTML is set to "Paragraph".');
+
+        trigger(paragraph, 'click');
+
+        equal(paragraph.innerHTML, '<strong>Text</strong>', 'HTML is set to "<strong>Text</strong>".');
 
         start();
     });

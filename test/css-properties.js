@@ -36,11 +36,11 @@ asyncTest('CSS Properties', function() {
         equal(button.style.getPropertyValue('background-color'), 'blue', 'Property background-color is set to "blue".');
         equal(button.style.getPropertyValue('color'), 'red', 'Property color is set to "red".');
 
-        equal(par.style.display, 'none', 'Property display is set to "none".');
+        equal(par.style.getPropertyValue('display'), 'none', 'Property display is set to "none".');
 
         trigger(show, 'click');
 
-        equal(par.style.display, 'block', 'Property display is set to "block".');
+        equal(par.style.getPropertyValue('display'), 'block', 'Property display is set to "block".');
 
         start();
     });
