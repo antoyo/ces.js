@@ -1,5 +1,6 @@
 Put the code into a namespace (with a global object to have the ability to use it in the converter and the tests).
 Add qunit tests with blanket.js coverage.
+Use the rel="eventsheet" attribute to figure out if it is an event sheet instead of using endsWith('.ces').
 Add a "this" keyword that could be use in the second selector.
 Support basic operations (width: +=10px; text: += "text";).
 
