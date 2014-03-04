@@ -22,13 +22,6 @@
  * THE SOFTWARE.
  */
 
-/*
- * Check if the current string ends with suffix
- */
-String.prototype.endsWith = function(suffix) {
-    return this.indexOf(suffix, this.length - suffix.length) !== -1;
-};
-
 (function(ces) {
     /*
      * CES property / JavaScript attributes mapping.
@@ -47,9 +40,11 @@ String.prototype.endsWith = function(suffix) {
         CSS_SELECTOR: 2,
         EVENT: 3,
         EVENT_SELECTOR: 4,
-        PROPERTY_NAME: 5,
-        PROPERTY_VALUE: 6,
-        REMOVE_ATTRIBUTE: 7
+        MULTILINE_COMMENT: 5,
+        PROPERTY_NAME: 6,
+        PROPERTY_VALUE: 7,
+        REMOVE_ATTRIBUTE: 8,
+        SINGLELINE_COMMENT: 9
     };
 
     /*
@@ -172,7 +167,6 @@ String.prototype.endsWith = function(suffix) {
             }
             js += '}, false);\n';
         }
-        console.log(js);
         return js;
     }
 
@@ -211,30 +205,54 @@ String.prototype.endsWith = function(suffix) {
     /*
      * Get the error message for an unexpected token.
      */
-    function getUnexpectedTokenErrorMessage(token, state, lineNumber, url) {
+    function getUnexpectedTokenErrorMessage(token, state, lineNumber, url, expecting) {
         var errorMessage = url + ':' + lineNumber + ': Unexpected `' + token + '`, expecting `';
-        switch(state) {
-            case State.ATTRIBUTE_NAME:
-                errorMessage += '="attribute value"';
-                break;
-            case State.EVENT:
-                errorMessage += '$event';
-                break;
-            case State.PROPERTY_NAME:
-                errorMessage += 'property name';
-                break;
-            case State.PROPERTY_VALUE:
-                errorMessage += 'property value';
-                break;
-            case State.EVENT_SELECTOR:
-                errorMessage += 'event selector';
-                break;
-            default:
-                console.log(state);
+        if(expecting != undefined) {
+            errorMessage += expecting;
+        }
+        else {
+            switch(state) {
+                case State.ATTRIBUTE_NAME:
+                    errorMessage += '="attribute value"';
+                    break;
+                case State.EVENT:
+                    errorMessage += '$event';
+                    break;
+                case State.PROPERTY_NAME:
+                    errorMessage += 'property name:';
+                    break;
+                case State.PROPERTY_VALUE:
+                    errorMessage += 'property value;';
+                    break;
+                case State.EVENT_SELECTOR:
+                    errorMessage += 'event selector';
+                    break;
+                default:
+                    console.log(state);
+            }
         }
         errorMessage += '` on line ' + lineNumber + '.';
         return errorMessage;
     }
+
+    /*
+     * Load the event sheets in the current document.
+     */
+    ces.load = function() {
+        var linkTags = document.getElementsByTagName('link');
+        var i;
+        for(i = 0 ; i < linkTags.length ; ++i) {
+            if('eventsheet' == linkTags[i].rel) {
+                (function(url, relativeUrl) {
+                    ces.download(url, function(source) {
+                        var js = ces.ces2js(source, relativeUrl);
+                        //console.log(js);
+                        ces.execute(js);
+                    });
+                })(linkTags[i].href, linkTags[i].getAttribute('href'));
+            }
+        }
+    };
 
     /*
      * Parse the Cascading Event Sheet and return the resulting JavaScript source code.
@@ -249,6 +267,7 @@ String.prototype.endsWith = function(suffix) {
         var endsWithQuote = false;
         var i;
         var isClassList = false;
+        var lastState = State.EVENT_SELECTOR;
         var lineNumber = 1;
         var jsProperty = new JsProperty();
         var removeAttribute = false;
@@ -263,169 +282,197 @@ String.prototype.endsWith = function(suffix) {
         }
 
         for(i = 0 ; i < source.length ; ++i) {
-            if(source[i] == ':') {
-                if(state == State.PROPERTY_NAME) {
-                    token = source.substring(start, i).trim();
-                    if(token == 'classes') {
-                        isClassList = true;
+            if(State.MULTILINE_COMMENT == state) {
+                if(('*' == source[i]) && (source.length > i + 1) && '/' == source[i + 1]) {
+                    state = lastState;
+                    start = i + 2;
+                }
+            }
+            else if(State.SINGLELINE_COMMENT == state) {
+                if('\n' == source[i]) {
+                    state = lastState;
+                    start = i + 1;
+                }
+            }
+            else {
+                if(source[i] == ':') {
+                    if(state == State.PROPERTY_NAME) {
+                        token = source.substring(start, i).trim();
+                        if(token == 'classes') {
+                            isClassList = true;
+                        }
+                        else if(token in JsAttributes) {
+                            jsProperty.name = token;
+                        }
+                        else {
+                            cssProperty.name = token;
+                        }
+                        state = State.PROPERTY_VALUE;
+                        start = i + 1;
                     }
-                    else if(token in JsAttributes) {
-                        jsProperty.name = token;
+                }
+                else if(source[i] == '$') {
+                    if(state == State.EVENT_SELECTOR) {
+                        action.eventSelector = source.substring(start, i).trim();
+                        start = i + 1;
+                        state = State.EVENT;
+                    }
+                }
+                else if(source[i] == '{') {
+                    if(state == State.EVENT) {
+                        getEvent();
+                    }
+                    else if(state == State.CSS_SELECTOR) {
+                        action.cssSelector = source.substring(start, i).trim();
+                        start = i + 1;
+                        state = State.PROPERTY_NAME;
                     }
                     else {
-                        cssProperty.name = token;
+                        throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url, '$event');
                     }
-                    state = State.PROPERTY_VALUE;
-                    start = i + 1;
                 }
-            }
-            else if(source[i] == '$') {
-                if(state == State.EVENT_SELECTOR) {
-                    action.eventSelector = source.substring(start, i).trim();
-                    start = i + 1;
-                    state = State.EVENT;
+                else if(source[i] == '}') {
+                    if(state == State.PROPERTY_NAME) {
+                        actions.push(action);
+                        action = new Action();
+                        state = State.EVENT_SELECTOR;
+                        start = i + 1;
+                    }
+                    else {
+                        throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
+                    }
                 }
-            }
-            else if(source[i] == '{') {
-                if(state == State.EVENT) {
-                    getEvent();
+                else if(source[i] == ';') {
+                    if(state == State.PROPERTY_VALUE) {
+                        if(isClassList) {
+                            cssClass.name = source.substring(start, i).trim();
+                            cssClass.action = classAction;
+                            action.addClass(cssClass);
+                            cssClass = new CssClass();
+                            classAction = 'add';
+                            isClassList = false;
+                        }
+                        else if(cssProperty.name.length > 0) {
+                            cssProperty.value = source.substring(start, i).trim();
+                            action.addCss(cssProperty);
+                            cssProperty = new CssProperty();
+                        }
+                        else if(jsProperty.name.length > 0) {
+                            jsProperty.value = source.substring(start, i).trim();
+                            action.addJs(jsProperty);
+                            jsProperty = new JsProperty();
+                        }
+                        start = i + 1;
+                        state = State.PROPERTY_NAME;
+                    }
                 }
-                else if(state == State.CSS_SELECTOR) {
-                    action.cssSelector = source.substring(start, i).trim();
-                    start = i + 1;
-                    state = State.PROPERTY_NAME;
+                else if('[' == source[i]) {
+                    if(State.PROPERTY_NAME == state) {
+                        state = State.ATTRIBUTE_NAME;
+                        start = i + 1;
+                    }
                 }
-                else {
-                    throw url + ':' + lineNumber + ': Unexpected `{`, expecting `$event` on line ' + lineNumber + '.';
+                else if('=' == source[i]) {
+                    if(State.ATTRIBUTE_NAME == state) {
+                        attribute.name = source.substring(start, i).trim();
+                        start = i + 1;
+                        state = State.ATTRIBUTE_VALUE;
+                    }
+                    else {
+                        throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
+                    }
                 }
-            }
-            else if(source[i] == '}') {
-                if(state == State.PROPERTY_NAME) {
-                    actions.push(action);
-                    action = new Action();
-                    state = State.EVENT_SELECTOR;
-                    start = i + 1;
+                else if(']' == source[i]) {
+                    if(State.ATTRIBUTE_NAME == state) {
+                        if(removeAttribute) {
+                            attribute.remove = true;
+                        }
+                        attribute.name = source.substring(start, i);
+                        start = i + 1;
+                        state = State.PROPERTY_NAME;
+                        action.addAttr(attribute);
+                        attribute = new Attribute();
+                    }
+                    else if(State.ATTRIBUTE_VALUE == state) {
+                        attribute.value = source.substring(start, i).trim();
+                        endsWithQuote = attribute.value[attribute.value.length - 1] == '"';
+                        if(attribute.value[0] == '"') {
+                            attribute.value = attribute.value.substring(1, attribute.value.length - 1);
+                        }
+                        else {
+                            throw getUnexpectedTokenErrorMessage(attribute.value, state, lineNumber, url, '"attribute value"');
+                        }
+                        if(!endsWithQuote) {
+                            throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url, '" (quote)');
+                        }
+                        start = i + 1;
+                        state = State.PROPERTY_NAME;
+                        action.addAttr(attribute);
+                        attribute = new Attribute();
+                    }
+                    else {
+                        throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
+                    }
                 }
-                else {
-                    throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
+                else if('-' == source[i]) {
+                    if(State.ATTRIBUTE_NAME == state) {
+                        start = i + 1;
+                        removeAttribute = true;
+                    }
+                    else if(State.PROPERTY_VALUE == state) {
+                        classAction = 'remove';
+                        start = i + 1;
+                    }
                 }
-            }
-            else if(source[i] == ';') {
-                if(state == State.PROPERTY_VALUE) {
-                    if(isClassList) {
+                else if('+' == source[i]) {
+                    if(State.PROPERTY_VALUE == state) {
+                        classAction = 'add';
+                        start = i + 1;
+                    }
+                    else {
+                        throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
+                    }
+                }
+                else if('!' == source[i]) {
+                    if(State.PROPERTY_VALUE == state) {
+                        classAction = 'toggle';
+                        start = i + 1;
+                    }
+                    else {
+                        throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
+                    }
+                }
+                else if('/' == source[i]) {
+                    if((source.length > i + 1)) {
+                        if('*' == source[i + 1]) {
+                            lastState = state;
+                            state = State.MULTILINE_COMMENT;
+                            ++i;
+                        }
+                        else if('/' == source[i + 1]) {
+                            lastState = state;
+                            state = State.SINGLELINE_COMMENT;
+                            ++i;
+                        }
+                    }
+                }
+                else if(' ' == source[i]) {
+                    if(State.EVENT == state) {
+                        getEvent();
+                    }
+                    else if(State.PROPERTY_VALUE == state && isClassList) {
                         cssClass.name = source.substring(start, i).trim();
-                        cssClass.action = classAction;
-                        action.addClass(cssClass);
-                        cssClass = new CssClass();
-                        classAction = 'add';
-                        isClassList = false;
-                    }
-                    else if(cssProperty.name.length > 0) {
-                        cssProperty.value = source.substring(start, i).trim();
-                        action.addCss(cssProperty);
-                        cssProperty = new CssProperty();
-                    }
-                    else if(jsProperty.name.length > 0) {
-                        jsProperty.value = source.substring(start, i).trim();
-                        action.addJs(jsProperty);
-                        jsProperty = new JsProperty();
-                    }
-                    start = i + 1;
-                    state = State.PROPERTY_NAME;
-                }
-            }
-            else if('[' == source[i]) {
-                if(State.PROPERTY_NAME == state) {
-                    state = State.ATTRIBUTE_NAME;
-                    start = i + 1;
-                }
-            }
-            else if('=' == source[i]) {
-                if(State.ATTRIBUTE_NAME == state) {
-                    attribute.name = source.substring(start, i).trim();
-                    start = i + 1;
-                    state = State.ATTRIBUTE_VALUE;
-                }
-                else {
-                    throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
-                }
-            }
-            else if(']' == source[i]) {
-                if(State.ATTRIBUTE_NAME == state) {
-                    if(removeAttribute) {
-                        attribute.remove = true;
-                    }
-                    attribute.name = source.substring(start, i);
-                    start = i + 1;
-                    state = State.PROPERTY_NAME;
-                    action.addAttr(attribute);
-                    attribute = new Attribute();
-                }
-                else if(State.ATTRIBUTE_VALUE == state) {
-                    attribute.value = source.substring(start, i).trim();
-                    endsWithQuote = attribute.value[attribute.value.length - 1] == '"';
-                    if(attribute.value[0] == '"') {
-                        attribute.value = attribute.value.substring(1, attribute.value.length - 1);
-                    }
-                    else {
-                        throw url + ':' + lineNumber + ': Unexpected `' + attribute.value + '`, expecting `"attribute value"` on line ' + lineNumber + '.';
-                    }
-                    if(!endsWithQuote) {
-                        throw url + ':' + lineNumber + ': Unexpected `]`, expecting `"` (quote) on line ' + lineNumber + '.';
-                    }
-                    start = i + 1;
-                    state = State.PROPERTY_NAME;
-                    action.addAttr(attribute);
-                    attribute = new Attribute();
-                }
-                else {
-                    throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
-                }
-            }
-            else if('-' == source[i]) {
-                if(State.ATTRIBUTE_NAME == state) {
-                    start = i + 1;
-                    removeAttribute = true;
-                }
-                else if(State.PROPERTY_VALUE == state) {
-                    classAction = 'remove';
-                    start = i + 1;
-                }
-            }
-            else if('+' == source[i]) {
-                if(State.PROPERTY_VALUE == state) {
-                    classAction = 'add';
-                    start = i + 1;
-                }
-                else {
-                    throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
-                }
-            }
-            else if('!' == source[i]) {
-                if(State.PROPERTY_VALUE == state) {
-                    classAction = 'toggle';
-                    start = i + 1;
-                }
-                else {
-                    throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
-                }
-            }
-            else if(' ' == source[i]) {
-                if(State.EVENT == state) {
-                    getEvent();
-                }
-                else if(State.PROPERTY_VALUE == state && isClassList) {
-                    cssClass.name = source.substring(start, i).trim();
 
-                    if(cssClass.name.length > 0) {
-                        cssClass.action = classAction;
-                        action.addClass(cssClass);
-                        cssClass = new CssClass();
-                        classAction = 'add';
+                        if(cssClass.name.length > 0) {
+                            cssClass.action = classAction;
+                            action.addClass(cssClass);
+                            cssClass = new CssClass();
+                            classAction = 'add';
+                        }
                     }
                 }
             }
-            else if('\n' == source[i]) {
+            if('\n' == source[i]) {
                 ++lineNumber;
             }
         }
@@ -433,17 +480,4 @@ String.prototype.endsWith = function(suffix) {
     }
 }(window.ces = window.ces || {}));
 
-window.addEventListener('load', function() {
-    var linkTags = document.getElementsByTagName('link');
-    var i;
-    for(i = 0 ; i < linkTags.length ; ++i) {
-        (function(url, relativeUrl) {
-            if(url.endsWith('.ces')) {
-                ces.download(url, function(source) {
-                    var js = ces.ces2js(source, relativeUrl);
-                    ces.execute(js);
-                });
-            }
-        })(linkTags[i].href, linkTags[i].getAttribute('href'));
-    }
-}, false);
+window.addEventListener('load', ces.load, false);

@@ -1,0 +1,3 @@
+#button $c!lick {
+    text: "Clicked";
+}
