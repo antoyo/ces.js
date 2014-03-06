@@ -37,14 +37,15 @@
     var State = {
         ATTRIBUTE_NAME: 0,
         ATTRIBUTE_VALUE: 1,
-        CSS_SELECTOR: 2,
-        EVENT: 3,
-        EVENT_SELECTOR: 4,
-        MULTILINE_COMMENT: 5,
-        PROPERTY_NAME: 6,
-        PROPERTY_VALUE: 7,
-        REMOVE_ATTRIBUTE: 8,
-        SINGLELINE_COMMENT: 9
+        ATTRIBUTE_VALUE_STRING: 2,
+        CSS_SELECTOR: 3,
+        EVENT: 4,
+        EVENT_SELECTOR: 5,
+        MULTILINE_COMMENT: 6,
+        PROPERTY_NAME: 7,
+        PROPERTY_VALUE: 8,
+        REMOVE_ATTRIBUTE: 9,
+        SINGLELINE_COMMENT: 10
     };
 
     /*
@@ -215,8 +216,20 @@
                 case State.ATTRIBUTE_NAME:
                     errorMessage += '="attribute value"';
                     break;
+                case State.ATTRIBUTE_VALUE:
+                    errorMessage += '="attribute value"';
+                    break;
+                case State.ATTRIBUTE_VALUE_STRING:
+                    errorMessage += '" (quote)';
+                    break;
+                case State.CSS_SELECTOR:
+                    errorMessage += 'css selector';
+                    break;
                 case State.EVENT:
                     errorMessage += '$event';
+                    break;
+                case State.EVENT_SELECTOR:
+                    errorMessage += 'event selector';
                     break;
                 case State.PROPERTY_NAME:
                     errorMessage += 'property name:';
@@ -224,11 +237,9 @@
                 case State.PROPERTY_VALUE:
                     errorMessage += 'property value;';
                     break;
-                case State.EVENT_SELECTOR:
-                    errorMessage += 'event selector';
+                case State.REMOVE_ATTRIBUTE:
+                    errorMessage += 'attribute name';
                     break;
-                default:
-                    console.log(state);
             }
         }
         errorMessage += '` on line ' + lineNumber + '.';
@@ -265,12 +276,13 @@
         var cssClass = new CssClass();
         var cssProperty = new CssProperty();
         var endsWithQuote = false;
+        var hasAttributeValue = false;
         var i;
         var isClassList = false;
         var lastState = State.EVENT_SELECTOR;
         var lineNumber = 1;
         var jsProperty = new JsProperty();
-        var removeAttribute = false;
+        var needsAttributeValue = false;
         var start = 0;
         var state = State.EVENT_SELECTOR;
         var token = '';
@@ -321,6 +333,7 @@
                 else if(source[i] == '{') {
                     if(state == State.EVENT) {
                         getEvent();
+                        state = State.PROPERTY_NAME;
                     }
                     else if(state == State.CSS_SELECTOR) {
                         action.cssSelector = source.substring(start, i).trim();
@@ -377,14 +390,18 @@
                         attribute.name = source.substring(start, i).trim();
                         start = i + 1;
                         state = State.ATTRIBUTE_VALUE;
+                        needsAttributeValue = true;
+                    }
+                    else if(State.ATTRIBUTE_VALUE == state) {
+                        throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url, ']');
                     }
                     else {
                         throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
                     }
                 }
                 else if(']' == source[i]) {
-                    if(State.ATTRIBUTE_NAME == state) {
-                        if(removeAttribute) {
+                    if(State.ATTRIBUTE_NAME == state || State.REMOVE_ATTRIBUTE == state) {
+                        if(State.REMOVE_ATTRIBUTE == state) {
                             attribute.remove = true;
                         }
                         attribute.name = source.substring(start, i);
@@ -394,21 +411,15 @@
                         attribute = new Attribute();
                     }
                     else if(State.ATTRIBUTE_VALUE == state) {
-                        attribute.value = source.substring(start, i).trim();
-                        endsWithQuote = attribute.value[attribute.value.length - 1] == '"';
-                        if(attribute.value[0] == '"') {
-                            attribute.value = attribute.value.substring(1, attribute.value.length - 1);
-                        }
-                        else {
-                            throw getUnexpectedTokenErrorMessage(attribute.value, state, lineNumber, url, '"attribute value"');
-                        }
-                        if(!endsWithQuote) {
-                            throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url, '" (quote)');
+                        if(!hasAttributeValue && needsAttributeValue) {
+                            throw getUnexpectedTokenErrorMessage(source.substring(start, i).trim(), state, lineNumber, url, '"attribute value"');
                         }
                         start = i + 1;
                         state = State.PROPERTY_NAME;
                         action.addAttr(attribute);
                         attribute = new Attribute();
+                        hasAttributeValue = false;
+                        needsAttributeValue = false;
                     }
                     else {
                         throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
@@ -417,11 +428,22 @@
                 else if('-' == source[i]) {
                     if(State.ATTRIBUTE_NAME == state) {
                         start = i + 1;
-                        removeAttribute = true;
+                        state = State.REMOVE_ATTRIBUTE;
                     }
                     else if(State.PROPERTY_VALUE == state) {
                         classAction = 'remove';
                         start = i + 1;
+                    }
+                    else if(State.ATTRIBUTE_VALUE == state) {
+                        if(hasAttributeValue) {
+                            throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url, ']');
+                        }
+                        else {
+                            throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
+                        }
+                    }
+                    else if(State.CSS_SELECTOR == state) {
+                        throw getUnexpectedTokenErrorMessage(source[i], state, lineNumber, url);
                     }
                 }
                 else if('+' == source[i]) {
@@ -454,6 +476,17 @@
                             state = State.SINGLELINE_COMMENT;
                             ++i;
                         }
+                    }
+                }
+                else if('"' == source[i]) {
+                    if(State.ATTRIBUTE_VALUE == state) {
+                        state = State.ATTRIBUTE_VALUE_STRING;
+                        start = i + 1;
+                        hasAttributeValue = true;
+                    }
+                    else if(State.ATTRIBUTE_VALUE_STRING == state) {
+                        state = State.ATTRIBUTE_VALUE;
+                        attribute.value = source.substring(start, i).trim();
                     }
                 }
                 else if(' ' == source[i]) {

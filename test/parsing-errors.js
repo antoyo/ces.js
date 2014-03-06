@@ -22,14 +22,14 @@
  */
 
 asyncTest('Parsing Errors', function() {
-    expect(8);
+    expect(13);
 
     ces.download('error.ces', function(source) {
         stop();
 
         throws(function() {
             ces.ces2js(source, 'error.ces');
-        }, 'error.ces:1: Unexpected `{`, expecting `$event` on line 1.', 'Missing event token.');
+        }, 'error.ces:2: Unexpected `{`, expecting `$event` on line 2.', 'Missing event token.');
 
         start();
     });
@@ -95,11 +95,61 @@ asyncTest('Parsing Errors', function() {
     });
 
     ces.download('error8.ces', function(source) {
-        //stop();
+        stop();
 
         throws(function() {
             ces.ces2js(source, 'error8.ces');
         }, 'error8.ces:1: Unexpected `!`, expecting `$event` on line 1.', 'Unexpected ! token.');
+
+        start();
+    });
+
+    ces.download('error9.ces', function(source) {
+        stop();
+
+        throws(function() {
+            ces.ces2js(source, 'error9.ces');
+        }, 'error9.ces:2: Unexpected `=`, expecting `]` on line 2.', 'Unexpected = token after attribute value.');
+
+        start();
+    });
+
+    ces.download('error10.ces', function(source) {
+        stop();
+
+        throws(function() {
+            ces.ces2js(source, 'error10.ces');
+        }, 'error10.ces:2: Unexpected `=`, expecting `attribute name` on line 2.', 'Unexpected = token after attribute name.');
+
+        start();
+    });
+
+    ces.download('error11.ces', function(source) {
+        stop();
+
+        throws(function() {
+            ces.ces2js(source, 'error11.ces');
+        }, 'error11.ces:2: Unexpected `-`, expecting `]` on line 2.', 'Unexpected - token after attribute name.');
+
+        start();
+    });
+
+    ces.download('error12.ces', function(source) {
+        stop();
+
+        throws(function() {
+            ces.ces2js(source, 'error12.ces');
+        }, 'error12.ces:2: Unexpected `-`, expecting `="attribute value"` on line 2.', 'Unexpected - token before attribute value.');
+
+        start();
+    });
+
+    ces.download('error13.ces', function(source) {
+        //stop();
+
+        throws(function() {
+            ces.ces2js(source, 'error13.ces');
+        }, 'error13.ces:1: Unexpected `-`, expecting `css selector` on line 1.', 'Unexpected - token before css selector.');
 
         start();
     });

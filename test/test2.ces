@@ -1,4 +1,4 @@
-#button2 $click {
+#button2 $click{
     [disabled="disabled"];
 }
 
