@@ -1,5 +1,5 @@
-Test the code without white spaces in .ces files.
 Add tests for comments (to be sure commented lines are not interpreted).
+Test with other syntax errors (like not having a ; at the end of a property).
 Add qunit tests for new features with blanket.js coverage.
 Add a "this" keyword that could be use in the second selector.
 Support basic operations (width: +=10px; text: += "text";).

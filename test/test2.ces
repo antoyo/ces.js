@@ -7,7 +7,7 @@
 }
 
 #textInput $focus {
-    [placeholder="Placeholder"];
+    [placeholder = "Placeholder"];
 }
 
 #textInput $blur {
