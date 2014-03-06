@@ -1,0 +1,14 @@
+/*button#button $click {
+    background-color: blue;
+    color: red;
+    text: "Clicked";
+}*/
+
+//Change the paragraph HTML on click.
+//#paragraph $click {
+//    html: "<strong>Text</strong>";
+//}
+
+/*#show $click #par {
+    display: block;
+}*/
