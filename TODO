@@ -1,4 +1,5 @@
 Test with other syntax errors (like not having a ; or a : at the end of a property or a = after an attribute name or a missing ] or } or {).
+Check if a CSS selector (and other CSS things) can span on multiple lines. If yes, support this in CES.
 Add qunit tests for new features with blanket.js coverage.
 Add a "this" keyword that could be use in the second selector.
 Support basic operations (width: +=10px; text: += "text";).
