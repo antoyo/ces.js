@@ -21,47 +21,53 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-asyncTest('Comments', function() {
-    expect(4);
+asyncTest('Event and CSS Selector', function() {
+    expect(8);
 
-    ces.download('test7.ces', function(source) {
+    ces.download('test8.ces', function(source) {
+        stop();
+
         var body = document.querySelector('#qunit-fixture');
 
         var button = document.createElement('button');
         button.id = 'button';
         button.textContent = 'Button';
+        button.title = 'Button';
         body.appendChild(button);
 
-        var paragraph = document.createElement('p');
-        paragraph.id = 'paragraph';
-        paragraph.textContent = 'Paragraph';
-        body.appendChild(paragraph);
-
-        var showButton = document.createElement('button');
-        showButton.id = 'show';
-        showButton.textContent = 'Show';
-        body.appendChild(showButton);
-
-        var par = document.createElement('p');
-        par.id = 'par';
-        par.style.display = 'none';
-        par.textContent = 'Par';
-        body.appendChild(par);
-
-        var js = ces.ces2js(source, 'test7.ces');
+        var js = ces.ces2js(source, 'test8.ces');
         ces.execute(js);
 
-        equal(button.textContent, 'Button', 'Text is set to "Button".');
+        equal(button.textContent, 'Button', 'Text is "Button".');
+        equal(button.getAttribute('title'), 'Button', 'Title is "Button".');
 
         trigger(button, 'click');
 
-        equal(button.textContent, 'Button', 'Text is still set to "Button".');
+        equal(button.textContent, 'Clicked', 'Text is "Clicked".');
+        equal(button.getAttribute('title'), 'Quote " here.', 'Title is "Quote " here.".');
 
-        equal(paragraph.innerHTML, 'Paragraph', 'HTML is set to "Paragraph".');
+        start();
+    });
 
-        trigger(paragraph, 'click');
+    ces.download('test12.ces', function(source) {
+        var body = document.querySelector('#qunit-fixture');
 
-        equal(paragraph.innerHTML, 'Paragraph', 'HTML is still set to "Paragraph".');
+        var button4 = document.createElement('button');
+        button4.id = 'button4';
+        button4.textContent = 'Button4';
+        button4.title = '{$}';
+        body.appendChild(button4);
+
+        var js = ces.ces2js(source, 'test12.ces');
+        ces.execute(js);
+        
+        equal(button4.textContent, 'Button4', 'Text is "Button4".');
+        equal(button4.getAttribute('title'), '{$}', 'Title is "{$}".');
+
+        trigger(button4, 'click');
+
+        equal(button4.textContent, 'Clicked4', 'Text is "Clicked4".');
+        equal(button4.getAttribute('title'), 'test', 'Title is "test".');
 
         start();
     });

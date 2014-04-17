@@ -1,0 +1,4 @@
+#button4[title="{$}"] $click #button4[title="{$}"] {
+    [title="test"];
+    text: "Clicked4";
+}

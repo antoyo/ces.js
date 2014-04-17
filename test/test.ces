@@ -6,9 +6,11 @@ button#button $click {
 
 //Change the paragraph HTML on click.
 #paragraph $click {
+    background-image: url('image.png');
     html: "<strong>Text</strong>";
 }
 
 #show $click #par {
+    background-image: url("image.png");
     display: block;
 }

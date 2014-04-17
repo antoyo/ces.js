@@ -1,3 +1,8 @@
 #button $click {
     [-=title];
+    classes: +bl"ue;
+    classes: -r'ed;
+    classes: !yel*low;
+    classes: !gre}en;
+    classes: !pi[nk;
 }

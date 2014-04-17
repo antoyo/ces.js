@@ -51,8 +51,8 @@ asyncTest('CSS Properties', function() {
         var js = ces.ces2js(source, 'test.ces');
         ces.execute(js);
 
-        equal(button.style.getPropertyValue('background-color'), '', 'Property background-color is not set.');
-        equal(button.style.getPropertyValue('color'), '', 'Property color is not set.');
+        ok(!button.style.getPropertyValue('background-color'), 'Property background-color is not set.');
+        ok(!button.style.getPropertyValue('color'), 'Property color is not set.');
 
         trigger(button, 'click');
 

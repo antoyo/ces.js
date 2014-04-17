@@ -1,0 +1,4 @@
+#button[title="Button"], #button[title='Button'] $click #button[title="Button"], #button[title='Button'] {
+    text: "Clicked";
+    [title="Quote \" here."];
+}

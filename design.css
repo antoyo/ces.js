@@ -47,8 +47,8 @@
 
 #animated {
     /*background:red;*/
-    height:100px;
-    width:100px;
+    height: 100px;
+    width: 100px;
 }
 
 @keyframes animation
@@ -63,4 +63,13 @@
         height: 200px;
         width: 300px;
     }
+}
+
+.hidden {
+    display: none;
+}
+
+.secret-toggle {
+    -moz-user-select: none;
+    user-select: none;
 }

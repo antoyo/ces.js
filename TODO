@@ -1,7 +1,3 @@
-Test with other syntax errors (like not having a ; or a : at the end of a property or a = after an attribute name or a missing ] or } or {).
-Check if a CSS selector (and other CSS things) can span on multiple lines. If yes, support this in CES.
-Add qunit tests for new features with blanket.js coverage.
-Add a "this" keyword that could be use in the second selector.
 Support basic operations (width: +=10px; text: += "text";).
 
 Support for conditions via inner block. For instance:
@@ -16,7 +12,12 @@ Support for conditions via inner block. For instance:
     }
 }
 
-Add a way to prevent the default behavior (to stop navigating with a click on a link, for instance).
-Add the subject selector (perhaps ! from CSS4) to allow changing properties of parent elements.
+Test this condition with dom $ready to see if they integrate well.
 
-Add support for properties (like checked; is it really needed?).
+Tests with other web browser.
+Create jQuery UI widgets with CES and add needed feature (accordion, autocomplete, dialog, menu, progressbar, slider, spinner, tabs, tooltip).
+
+These probably won't be needed as they will be implemented by web browsers:
+Add support for CSS variables (changing value)
+Add the subject selector (perhaps ! from CSS4) to allow changing properties of parent elements.
+Look to support other new features from CSS 3 and CSS 4.

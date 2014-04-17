@@ -22,9 +22,11 @@
  */
 
 asyncTest('JS Properties', function() {
-    expect(4);
+    expect(8);
 
     ces.download('test.ces', function(source) {
+        stop();
+
         var body = document.querySelector('#qunit-fixture');
 
         var button = document.createElement('button');
@@ -62,6 +64,37 @@ asyncTest('JS Properties', function() {
         trigger(paragraph, 'click');
 
         equal(paragraph.innerHTML, '<strong>Text</strong>', 'HTML is set to "<strong>Text</strong>".');
+
+        start();
+    });
+
+    ces.download('test9.ces', function(source) {
+        var body = document.querySelector('#qunit-fixture');
+
+        var button3 = document.createElement('button');
+        button3.id = 'button3';
+        button3.textContent = 'Button';
+        body.appendChild(button3);
+
+        var paragraph2 = document.createElement('p');
+        paragraph2.id = 'paragraph2';
+        paragraph2.innerHTML = 'Text';
+        body.appendChild(paragraph2);
+
+        var js = ces.ces2js(source, 'test9.ces');
+        ces.execute(js);
+
+        equal(button3.textContent, 'Button', 'Text is set to "Button".');
+
+        trigger(button3, 'click');
+
+        equal(button3.textContent, 'Clicked', 'Text is set to "Clicked".');
+
+        equal(paragraph2.innerHTML, 'Text', 'HTML is set to "Text".');
+
+        trigger(paragraph2, 'click');
+
+        equal(paragraph2.innerHTML, '<em>Text</em>', 'HTML is set to "<em>Text</em>".');
 
         start();
     });

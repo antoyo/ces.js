@@ -1,0 +1,7 @@
+#button $click
+    text: "Clicked";
+}
+
+#button $click
+    text: "Button";
+}

@@ -1,0 +1,7 @@
+button $click {
+    color: blue;
+}
+
+button#allButton $click button {
+    color: red;
+}

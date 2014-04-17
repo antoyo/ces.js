@@ -1,0 +1,12 @@
+#button3 $click {
+    text: "Click";
+    text: "Clicked";
+    classes: +blue -red;
+    classes: +yellow !green;
+    classes: -blue !green;
+}
+
+#paragraph2 $click {
+    html: "<strong>Text</strong>";
+    html: "<em>Text</em>";
+}

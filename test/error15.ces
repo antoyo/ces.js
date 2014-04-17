@@ -1,0 +1,33 @@
+#button
+
+
+        		$cl>ick
+	#otherButton
+		    {
+
+
+    [
+		        title
+
+        			=
+	"test"
+	
+	]
+
+		        ;
+
+    [
+
+		#title		=		"test"		   ]  	  ;
+
+    +property
+
+
+:
+	    	    value
+    ;
+
+    property
+
+            :
+value

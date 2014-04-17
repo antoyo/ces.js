@@ -1,0 +1,11 @@
+.inside $click this ._color-this[data-this="this"] {
+    color: green;
+}
+
+.set-id $click this {
+    [id="new-id"];
+}
+
+.links $click this > a[href^="https:"] {
+    color: red;
+}

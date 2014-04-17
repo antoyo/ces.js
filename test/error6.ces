@@ -1,3 +1,6 @@
-#button $click {
-    display: none];
+button $click {
+    text: "clic]ked" ];
+    text: "clic[ked" [;
+    text: "clic{ked" {;
+    text: "clic}ked" };
 }

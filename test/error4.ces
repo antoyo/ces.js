@@ -1,3 +1,5 @@
 button#button $click {
     [title=test];
 }
+
+button#button $click }

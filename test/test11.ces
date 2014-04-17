@@ -1,0 +1,5 @@
+div
+button#button $click div
+p#par {
+    color: blue;
+}

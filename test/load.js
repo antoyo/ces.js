@@ -22,14 +22,21 @@
  */
 
 asyncTest('Parse CES File on Window Load Event', function() {
-    expect(6);
+    expect(8);
 
     var body = document.querySelector('#qunit-fixture');
 
-    var link = document.createElement('link');
-    link.rel = 'eventsheet';
-    link.href = 'test.ces';
-    body.appendChild(link);
+    var script = document.createElement('script');
+    script.type = 'text/ces';
+    script.src = 'test.ces';
+    body.appendChild(script);
+
+    var inlineScript = document.createElement('script');
+    inlineScript.type = 'text/ces';
+    inlineScript.textContent = '#div $click {\n'
+        + '    color: green;\n'
+        + '}\n';
+    body.appendChild(inlineScript);
 
     var button = document.createElement('button');
     button.id = 'button';
@@ -52,11 +59,16 @@ asyncTest('Parse CES File on Window Load Event', function() {
     par.textContent = 'Par';
     body.appendChild(par);
 
+    var div = document.createElement('div');
+    div.id = 'div';
+    div.textContent = 'Div';
+    body.appendChild(div);
+
     ces.load();
 
     setTimeout(function() {
-        equal(button.style.getPropertyValue('background-color'), '', 'Property background-color is not set.');
-        equal(button.style.getPropertyValue('color'), '', 'Property color is not set.');
+        ok(!button.style.getPropertyValue('background-color'), 'Property background-color is not set.');
+        ok(!button.style.getPropertyValue('color'), 'Property color is not set.');
         equal(button.textContent, 'Button', 'Text is set to "Button".');
 
         trigger(button, 'click');
@@ -64,6 +76,12 @@ asyncTest('Parse CES File on Window Load Event', function() {
         equal(button.style.getPropertyValue('background-color'), 'blue', 'Property background-color is set to "blue".');
         equal(button.style.getPropertyValue('color'), 'red', 'Property color is set to "red".');
         equal(button.textContent, 'Clicked', 'Text is set to "Clicked".');
+
+        ok(!div.style.getPropertyValue('color'), 'Property color is not set.');
+
+        trigger(div, 'click');
+
+        equal(div.style.getPropertyValue('color'), 'green', 'Property color is set to "green".');
 
         start();
     }, 100);

@@ -1,4 +1,9 @@
 /* Missing event */
-button#button {
+button#button
+
+{
     text: "Clicked";
 }
+
+button#button {
+    text: "Clicked";

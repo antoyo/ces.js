@@ -1,0 +1,11 @@
+#focus $click #text-input {
+    focus;
+}
+
+#scroll $click #to {
+    scroll;
+}
+
+#change-size $click {
+    changeSize;
+}

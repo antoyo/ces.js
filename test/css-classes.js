@@ -22,9 +22,11 @@
  */
 
 asyncTest('CSS Classes', function() {
-    expect(28);
+    expect(36);
 
     ces.download('test3.ces', function(source) {
+        stop();
+
         var body = document.querySelector('#qunit-fixture');
 
         var showButton = document.createElement('button');
@@ -111,6 +113,38 @@ asyncTest('CSS Classes', function() {
         ok(text.classList.contains('big'), 'Class big is set.');
         ok(!text.classList.contains('italic'), 'Class italic is not set.');
         ok(!text.classList.contains('underline'), 'Class underline is not set.');
+
+        start();
+    });
+
+    ces.download('test9.ces', function(source) {
+        var body = document.querySelector('#qunit-fixture');
+
+        var button3 = document.createElement('button');
+        button3.id = 'button3';
+        button3.textContent = 'Button';
+        button3.classList.add('red');
+        body.appendChild(button3);
+
+        var paragraph2 = document.createElement('p');
+        paragraph2.id = 'paragraph2';
+        paragraph2.innerHTML = 'Text';
+        body.appendChild(paragraph2);
+
+        var js = ces.ces2js(source, 'test9.ces');
+        ces.execute(js);
+
+        ok(button3.classList.contains('red'), 'Class red is set.');
+        ok(!button3.classList.contains('blue'), 'Class blue is not set.');
+        ok(!button3.classList.contains('yellow'), 'Class yellow is not set.');
+        ok(!button3.classList.contains('green'), 'Class green is not set.');
+
+        trigger(button3, 'click');
+
+        ok(!button3.classList.contains('red'), 'Class red is not set.');
+        ok(!button3.classList.contains('blue'), 'Class blue is not set.');
+        ok(button3.classList.contains('yellow'), 'Class yellow is set.');
+        ok(!button3.classList.contains('green'), 'Class green is not set.');
 
         start();
     });

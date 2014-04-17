@@ -33,15 +33,30 @@ THE SOFTWARE.
 
         <script src="js/ces.js"></script>
 
+        <script src="script.js"></script>
+
         <link rel="stylesheet" href="design.css"/>
 
-        <link rel="eventsheet" href="test/test.ces"/>
-        <link rel="eventsheet" href="test/test2.ces"/>
-        <link rel="eventsheet" href="test/test3.ces"/>
-        <link rel="eventsheet" href="test/test4.ces"/>
-        <link rel="eventsheet" href="test/test5.ces"/>
+        <script src="test/test.ces" type="text/ces"></script>
+        <script src="test/test2.ces" type="text/ces"></script>
+        <script src="test/test3.ces" type="text/ces"></script>
+        <script src="test/test4.ces" type="text/ces"></script>
+        <script src="test/test5.ces" type="text/ces"></script>
+        <script src="test/test14.ces" type="text/ces"></script>
+        <script src="test/test15.ces" type="text/ces"></script>
+        <script src="test/test16.ces" type="text/ces"></script>
+        <script src="test/test18.ces" type="text/ces"></script>
+
+        <script type="text/ces">
+        #div $click {
+            color: green;
+        }
+        </script>
     </head>
     <body>
+        <button id="scroll">Scroll</button>
+        <button id="change-size">Change Size</button>
+
         <h1>Cascading Event Sheet</h1>
 
         <p id="paragraph">Parapraph</p>
@@ -85,6 +100,8 @@ THE SOFTWARE.
 
         <button id="animate">Animate</button>
 
+        <div id="div">Div</div>
+
         <br/>
 
         <div id="animated"></div>
@@ -95,5 +112,48 @@ THE SOFTWARE.
         <button id="uncheck">Uncheck</button>
 
         <input type="checkbox" id="checkbox"/>
+
+        <form id="form">
+            <a href="" id="link">Link</a>
+            <button id="focus">Give Focus</button>
+            <input type="text" id="text-input"/>
+            <input type="submit" value="Submit"/>
+        </form>
+
+        <div id="my-inside" class="inside">
+            <span class="color" title="Color">color</span>
+            text
+        </div>
+
+        <div class="inside">
+            <span class="color" title="Color">color</span>
+            text
+        </div>
+
+        <div class="inside">
+            <span class="color" title="Color">color</span>
+            text
+        </div>
+
+        <div class="inside">
+            <span class="color" title="Color">color</span>
+            text
+        </div>
+
+        <div id="to">To</div>
+
+        <br/>
+
+        <div class="secret">
+            <div class="secret-toggle">Click to view</div>
+            <div class="secret-text">Secret text</div>
+        </div>
+
+        <br/>
+
+        <div class="secret">
+            <div class="secret-toggle">Click to view</div>
+            <div class="secret-text">Another secret text</div>
+        </div>
     </body>
 </html>

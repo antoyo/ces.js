@@ -1,0 +1,42 @@
+button#button
+   $click
+
+{
+        background-color
+    
+    :
+
+blue
+
+    ;
+
+        color
+
+
+: red ;
+
+    text: "Clicked";
+}
+
+        #enableButton   	     $click     	      #button2   	  {    [   -disabled    ]   ;    }
+
+
+   #change $click    #text
+
+{
+	color			:		blue		;
+classes
+:
++big
++backred
+-underline
+!italic
+;
+        	    [   	   title        		 =  		    "title"  			   ]  		  ;
+
+        [
+			data-text
+    		=
+    		"text"
+ 		] 		  ;
+}

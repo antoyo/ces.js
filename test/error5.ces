@@ -1,3 +1,8 @@
 #button $click {
     [title="Test];
+    property = value
+
+;
+    property = value;
+    property = value
 }

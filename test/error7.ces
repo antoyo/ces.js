@@ -1,3 +1,6 @@
 #button $click {
-    [title+="Test"];
+    [title=+"Test"];
 }
+
+#button $click {
+    property = value
