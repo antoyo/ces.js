@@ -12,8 +12,6 @@ Support for conditions via inner block. For instance:
     }
 }
 
-Test this condition with dom $ready to see if they integrate well.
-
 Tests with other web browser.
 Create jQuery UI widgets with CES and add needed feature (accordion, autocomplete, dialog, menu, progressbar, slider, spinner, tabs, tooltip).
 
