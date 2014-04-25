@@ -73,3 +73,8 @@
     -moz-user-select: none;
     user-select: none;
 }
+
+#increment-div {
+    border: 1px solid black;
+    width: 100px;
+}

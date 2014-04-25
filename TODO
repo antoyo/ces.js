@@ -1,4 +1,10 @@
-Support basic operations (width: +=10px; text: += "text";).
+Support value for JS methods.
+Support inline JS methods (outputs JS directly instead of calling method).
+Write inline JS methods for the JS properties.
+Support += for text and html methods.
+Remove JS properties.
+
+Support RequireJS.
 
 Support for conditions via inner block. For instance:
 .button $click {

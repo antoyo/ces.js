@@ -141,6 +141,8 @@
      * Class to store a CSS property.
      */
     function CssProperty() {
+        this.decrement = false;
+        this.increment = false;
         this.name = '';
         this.value = '';
     }
@@ -160,6 +162,8 @@
      * Class to store a JS property.
      */
     function JsProperty() {
+        this.decrement = false;
+        this.increment = false;
         this.name = '';
         this.value = '';
     }
@@ -174,6 +178,7 @@
         var j;
         var js = '';
         var name;
+        var propertyPrefix;
         var prefix;
         var selector;
         var suffix;
@@ -213,8 +218,20 @@
             for(j = 0 ; j < action.cssProperties.length ; ++j) {
                 name = action.cssProperties[j].name;
                 value = action.cssProperties[j].value;
+                propertyPrefix = value.substr(0, 2);
                 js += prefix;
-                js += '        ' + selector + '.style.setProperty("' + name + '", "' + addSlashes(value) + '");\n';
+                if('+=' == propertyPrefix || '-=' == propertyPrefix) {
+                    value = value.substr(2);
+                    js += '        var value = parseFloat(getComputedStyle(' + selector + ').getPropertyValue("' + name + '"));\n';
+                    js += 'console.log("Inc", ' + parseFloat(value) + ');\n';
+                    js += 'console.log("Old: " + getComputedStyle(' + selector + ').getPropertyValue("' + name + '"));\n';
+                    js += '        value ' + propertyPrefix + ' ' + parseFloat(value) + ';\n';
+                    js += 'console.log("New: " + value);\n';
+                    js += '        ' + selector + '.style.setProperty("' + name + '", value + "px");\n';
+                }
+                else {
+                    js += '        ' + selector + '.style.setProperty("' + name + '", "' + addSlashes(value) + '");\n';
+                }
                 js += suffix;
             }
             for(j = 0 ; j < action.jsProperties.length ; ++j) {
@@ -798,7 +815,7 @@
                             addError('class name');
                         }
                     }
-                    else if(quote.length == 0 && (']' == char || '[' == char || '{' == char || '}' == char)) {
+                    else if(0 == quote.length && (']' == char || '[' == char || '{' == char || '}' == char)) {
                         addError(';');
                         if(';' != source[i]) {
                             state = State.ROOT;
