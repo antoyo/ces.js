@@ -23,7 +23,7 @@
  */
 
 asyncTest('JS Methods', function() {
-    expect(12);
+    expect(16);
 
     ces.download('test15.ces', function(source) {
         var body = document.querySelector('#qunit-fixture');
@@ -66,6 +66,11 @@ asyncTest('JS Methods', function() {
         changeContent.textContent = 'Content';
         body.appendChild(changeContent);
 
+        var changeContent2 = document.createElement('div');
+        changeContent2.id = 'change-content2';
+        changeContent2.textContent = 'Macro Content';
+        body.appendChild(changeContent2);
+
         ces.addMethod('changeSize', function(selector) {
             selector.style.height = '100px';
             selector.style.width = '200px';
@@ -80,6 +85,10 @@ asyncTest('JS Methods', function() {
             selector.textContent = content.substr(1, content.length - 2);
         });
 
+        ces.addMethod('content2', function(selector, content) {
+            return selector + '.textContent = ' + content + ';';
+        }, true);
+
         var js = ces.ces2js(source, 'test15.ces');
         ces.execute(js);
 
@@ -88,6 +97,14 @@ asyncTest('JS Methods', function() {
         trigger(changeContent, 'click');
 
         equal(changeContent.textContent, 'new content', 'Content is set to "new content"');
+        ok(js.indexOf('ces.call("content", this') != -1, 'JS contains method call');
+
+        equal(changeContent2.textContent, 'Macro Content', 'Content is set to "Macro Content"');
+
+        trigger(changeContent2, 'click');
+
+        equal(changeContent2.textContent, 'new macro content', 'Content is set to "new macro content"');
+        ok(js.indexOf('.textContent = "new macro content";') != -1, 'JS contains the macro.');
 
         equal(document.activeElement, document.body, 'Focus is not set.');
 

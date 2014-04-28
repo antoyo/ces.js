@@ -1,7 +1,8 @@
-Support inline JS methods (outputs JS directly instead of calling method).
 Write inline JS methods for the JS properties.
 Support += for text and html methods.
 Remove JS properties.
+
+Test with multiple increments and decrements to see if all of them are taken into account.
 
 Support RequireJS.
 

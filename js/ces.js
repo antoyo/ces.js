@@ -171,9 +171,18 @@
     /*
      * Class to store a JS method.
      */
-    function Method(name) {
+    function JsMethod(name) {
         this.name = name;
-        this.parameter = null;
+        this.parameter = undefined;
+    }
+
+    /*
+     * Class to store a custom method added by the user.
+     */
+    function Method(name, body, isMacro) {
+        this.body = body;
+        this.isMacro = isMacro;
+        this.name = name;
     }
 
     /*
@@ -185,6 +194,7 @@
         var isDomReady;
         var j;
         var js = '';
+        var method;
         var name;
         var propertyPrefix;
         var prefix;
@@ -219,12 +229,18 @@
                 suffix = '';
             }
             for(j = 0 ; j < action.methods.length ; ++j) {
+                method = action.methods[j];
                 js += prefix;
-                if(action.methods[j].parameter != null) {
-                    js += '        ces.call("' + action.methods[j].name + '", ' + selector + ', "' + addSlashes(action.methods[j].parameter) + '", event);\n';
+                if(isMacroMethod(method.name)) {
+                    js += methods[method.name].body(selector, method.parameter);
                 }
                 else {
-                    js += '        ces.call("' + action.methods[j].name + '", ' + selector + ', event);\n';
+                    if(method.parameter != undefined) {
+                        js += '        ces.call("' + method.name + '", ' + selector + ', "' + addSlashes(method.parameter) + '", event);\n';
+                    }
+                    else {
+                        js += '        ces.call("' + method.name + '", ' + selector + ', event);\n';
+                    }
                 }
                 js += suffix;
             }
@@ -236,10 +252,7 @@
                 if('+=' == propertyPrefix || '-=' == propertyPrefix) {
                     value = value.substr(2);
                     js += '        var value = parseFloat(getComputedStyle(' + selector + ').getPropertyValue("' + name + '"));\n';
-                    js += 'console.log("Inc", ' + parseFloat(value) + ');\n';
-                    js += 'console.log("Old: " + getComputedStyle(' + selector + ').getPropertyValue("' + name + '"));\n';
                     js += '        value ' + propertyPrefix + ' ' + parseFloat(value) + ';\n';
-                    js += 'console.log("New: " + value);\n';
                     js += '        ' + selector + '.style.setProperty("' + name + '", value + "px");\n';
                 }
                 else {
@@ -302,9 +315,14 @@
 
     /*
      * Add a user-defined method.
+     * A macro method is a method returning the JS to output during the compilation.
+     * A normal method will be called at the execution.
      */
-    ces.addMethod = function(name, method) {
-        methods[name] = method;
+    ces.addMethod = function(name, method, isMacro) {
+        if(isMacro == undefined) {
+            isMacro = false;
+        }
+        methods[name] = new Method(name, method, isMacro);
     };
 
     /*
@@ -318,7 +336,7 @@
      * Call a user-defined method.
      */
     ces.call = function(name, selector, event) {
-        methods[name].apply(undefined, [selector, event]);
+        methods[name].body.apply(undefined, [selector, event]);
     };
 
     /*
@@ -485,6 +503,13 @@
      */
     function isLetter(character) {
         return character.match(/[A-Za-z]/);
+    }
+
+    /*
+     * Check if a user-defined method is a macro.
+     */
+    function isMacroMethod(name) {
+        return methods[name].isMacro;
     }
 
     /*
@@ -747,7 +772,7 @@
                     token = source.substring(start, i).trim();
                     if(':' == char) {
                         if(isMethod(token)) {
-                            method = new Method(token);
+                            method = new JsMethod(token);
                         }
                         else if(token == 'classes') {
                             isClassList = true;
@@ -762,7 +787,7 @@
                         start = i + 1;
                     }
                     else if(';' == char && isMethod(token)) {
-                        action.addMethod(new Method(token));
+                        action.addMethod(new JsMethod(token));
                         state = State.BODY;
                     }
                     else if(!isIdentifier(char) && !isWhiteSpace(char)) {

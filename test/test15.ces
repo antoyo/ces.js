@@ -13,3 +13,7 @@
 #change-content $click {
     content: "new content";
 }
+
+#change-content2 $click {
+    content2: "new macro content";
+}
