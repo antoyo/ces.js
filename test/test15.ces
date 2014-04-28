@@ -9,3 +9,7 @@
 #change-size $click {
     changeSize;
 }
+
+#change-content $click {
+    content: "new content";
+}

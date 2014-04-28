@@ -169,6 +169,14 @@
     }
 
     /*
+     * Class to store a JS method.
+     */
+    function Method(name) {
+        this.name = name;
+        this.parameter = null;
+    }
+
+    /*
      * Convert the CES actions to JavaScript.
      */
     function actions2js(actions) {
@@ -212,7 +220,12 @@
             }
             for(j = 0 ; j < action.methods.length ; ++j) {
                 js += prefix;
-                js += '        ces.call("' + action.methods[j] + '", ' + selector + ', event);\n';
+                if(action.methods[j].parameter != null) {
+                    js += '        ces.call("' + action.methods[j].name + '", ' + selector + ', "' + addSlashes(action.methods[j].parameter) + '", event);\n';
+                }
+                else {
+                    js += '        ces.call("' + action.methods[j].name + '", ' + selector + ', event);\n';
+                }
                 js += suffix;
             }
             for(j = 0 ; j < action.cssProperties.length ; ++j) {
@@ -542,6 +555,7 @@
         var lineNumber = 1;
         var jsProperty = new JsProperty();
         var message = '';
+        var method = null;
         var needsAttributeValue = false;
         var quote = '';
         var start = 0;
@@ -732,7 +746,10 @@
                 case State.PROPERTY_NAME:
                     token = source.substring(start, i).trim();
                     if(':' == char) {
-                        if(token == 'classes') {
+                        if(isMethod(token)) {
+                            method = new Method(token);
+                        }
+                        else if(token == 'classes') {
                             isClassList = true;
                         }
                         else if(token in JsAttributes) {
@@ -745,7 +762,7 @@
                         start = i + 1;
                     }
                     else if(';' == char && isMethod(token)) {
-                        action.addMethod(token);
+                        action.addMethod(new Method(token));
                         state = State.BODY;
                     }
                     else if(!isIdentifier(char) && !isWhiteSpace(char)) {
@@ -765,7 +782,12 @@
                         }
                     }
                     else if(';' == char) {
-                        if(isClassList) {
+                        if(method != null) {
+                            method.parameter = source.substring(start, i).trim();
+                            action.addMethod(method);
+                            method = null;
+                        }
+                        else if(isClassList) {
                             cssClass.name = source.substring(start, i).trim();
                             if(cssClass.name.length > 0) {
                                 cssClass.action = classAction;

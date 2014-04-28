@@ -1,4 +1,3 @@
-Support value for JS methods.
 Support inline JS methods (outputs JS directly instead of calling method).
 Write inline JS methods for the JS properties.
 Support += for text and html methods.

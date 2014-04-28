@@ -23,7 +23,7 @@
  */
 
 asyncTest('JS Methods', function() {
-    expect(10);
+    expect(12);
 
     ces.download('test15.ces', function(source) {
         var body = document.querySelector('#qunit-fixture');
@@ -61,6 +61,11 @@ asyncTest('JS Methods', function() {
         to.innerHTML = 'To';
         body.appendChild(to);
 
+        var changeContent = document.createElement('div');
+        changeContent.id = 'change-content';
+        changeContent.textContent = 'Content';
+        body.appendChild(changeContent);
+
         ces.addMethod('changeSize', function(selector) {
             selector.style.height = '100px';
             selector.style.width = '200px';
@@ -71,8 +76,18 @@ asyncTest('JS Methods', function() {
             }, 100);
         });
 
+        ces.addMethod('content', function(selector, content) {
+            selector.textContent = content.substr(1, content.length - 2);
+        });
+
         var js = ces.ces2js(source, 'test15.ces');
         ces.execute(js);
+
+        equal(changeContent.textContent, 'Content', 'Content is set to "Content"');
+
+        trigger(changeContent, 'click');
+
+        equal(changeContent.textContent, 'new content', 'Content is set to "new content"');
 
         equal(document.activeElement, document.body, 'Focus is not set.');
 
