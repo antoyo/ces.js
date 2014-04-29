@@ -1,19 +1,19 @@
 #show $click {
-    classes: +blue;
+    class: +blue;
 }
 
 #remove $click #show {
-    classes: -blue;
+    class: -blue;
 }
 
 #toggle $click #show {
-    classes: !blue;
+    class: !blue;
 }
 
 #add $click #text {
-    classes: -big -backred +underline;
+    class: -big -backred +underline;
 }
 
 #change $click #text {
-    classes: +big +backred -underline !italic;
+    class: +big +backred -underline !italic;
 }

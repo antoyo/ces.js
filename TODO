@@ -1,8 +1,5 @@
-Write inline JS methods for the JS properties.
-Support += for text and html methods.
-Remove JS properties.
-
 Test with multiple increments and decrements to see if all of them are taken into account.
+Test with css classes starting with -, + or ! if these are valid.
 
 Support RequireJS.
 

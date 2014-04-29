@@ -1,9 +1,9 @@
 #button3 $click {
     text: "Click";
     text: "Clicked";
-    classes: +blue -red;
-    classes: +yellow !green;
-    classes: -blue !green;
+    class: +blue -red;
+    class: +yellow !green;
+    class: -blue !green;
 }
 
 #paragraph2 $click {

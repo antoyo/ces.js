@@ -21,8 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-asyncTest('JS Properties', function() {
-    expect(8);
+asyncTest('Built-in Methods', function() {
+    expect(14);
 
     ces.download('test.ces', function(source) {
         stop();
@@ -69,6 +69,8 @@ asyncTest('JS Properties', function() {
     });
 
     ces.download('test9.ces', function(source) {
+        stop();
+
         var body = document.querySelector('#qunit-fixture');
 
         var button3 = document.createElement('button');
@@ -95,6 +97,55 @@ asyncTest('JS Properties', function() {
         trigger(paragraph2, 'click');
 
         equal(paragraph2.innerHTML, '<em>Text</em>', 'HTML is set to "<em>Text</em>".');
+
+        start();
+    });
+
+    ces.download('test20.ces', function(source) {
+        var body = document.querySelector('#qunit-fixture');
+
+        var appendButton = document.createElement('button');
+        appendButton.id = 'appendButton';
+        appendButton.textContent = 'Button';
+        body.appendChild(appendButton);
+
+        var appendParagraph = document.createElement('p');
+        appendParagraph.id = 'appendParagraph';
+        appendParagraph.innerHTML = 'Text ';
+        body.appendChild(appendParagraph);
+
+        var appendHTMLButton = document.createElement('button');
+        appendHTMLButton.id = 'appendHTMLButton';
+        appendHTMLButton.textContent = 'HTML Button';
+        body.appendChild(appendHTMLButton);
+
+        var appendHTMLParagraph = document.createElement('p');
+        appendHTMLParagraph.id = 'appendHTMLParagraph';
+        appendHTMLParagraph.innerHTML = 'HTML';
+        body.appendChild(appendHTMLParagraph);
+
+        var js = ces.ces2js(source, 'test20.ces');
+        ces.execute(js);
+
+        equal(appendParagraph.textContent, 'Text ', 'Text is set to "Text ".');
+
+        trigger(appendButton, 'click');
+
+        equal(appendParagraph.textContent, 'Text appended content ', 'Text is set to "Text appended content ".');
+
+        trigger(appendButton, 'click');
+
+        equal(appendParagraph.textContent, 'Text appended content appended content ', 'Text is set to "Text appended content appended content ".');
+
+        equal(appendHTMLParagraph.innerHTML, 'HTML', 'HTML is set to "HTML".');
+
+        trigger(appendHTMLButton, 'click');
+
+        equal(appendHTMLParagraph.innerHTML, 'HTML <strong>new html</strong>', 'HTML is set to "HTML <strong> new html</strong>".');
+
+        trigger(appendHTMLButton, 'click');
+
+        equal(appendHTMLParagraph.innerHTML, 'HTML <strong>new html</strong> <strong>new html</strong>', 'HTML is set to "HTML <strong> new html</strong> <strong> new html</strong>".');
 
         start();
     });

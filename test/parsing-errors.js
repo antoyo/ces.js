@@ -22,7 +22,7 @@
  */
 
 asyncTest('Parsing Errors', function() {
-    expect(17);
+    expect(18);
 
     ces.download('error.ces', function(source) {
         stop();
@@ -119,7 +119,7 @@ asyncTest('Parsing Errors', function() {
 
         throws(function() {
             ces.ces2js(source, 'error10.ces');
-        }, 'error10.ces:2:7: Unexpected `=`, expecting `attribute name` on line 2.\nerror10.ces:3:17: Unexpected `"`, expecting `class name` on line 3.\nerror10.ces:4:16: Unexpected `\'`, expecting `class name` on line 4.\nerror10.ces:5:18: Unexpected `*`, expecting `class name` on line 5.\nerror10.ces:6:18: Unexpected `}`, expecting `class name` on line 6.\nerror10.ces:7:17: Unexpected `[`, expecting `class name` on line 7.', 'Unexpected = token before attribute name.');
+        }, 'error10.ces:2:7: Unexpected `=`, expecting `attribute name` on line 2.', 'Unexpected = token before attribute name.');
 
         start();
     });
@@ -185,11 +185,21 @@ asyncTest('Parsing Errors', function() {
     });
 
     ces.download('error17.ces', function(source) {
-        //stop();
+        stop();
 
         throws(function() {
             ces.ces2js(source, 'error17.ces');
         }, 'error17.ces:3:1: Unexpected `}`, expecting `{` on line 3.\nerror17.ces:7:1: Unexpected `}`, expecting `{` on line 7.', 'Missing {.');
+
+        start();
+    });
+
+    ces.download('error18.ces', function(source) {
+        /*stop();*/
+
+        throws(function() {
+            ces.ces2js(source, 'error18.ces');
+        }, 'error18.ces:2:15: Unexpected `"`, expecting `class name` on line 2.\nerror18.ces:3:14: Unexpected `\'`, expecting `class name` on line 3.\nerror18.ces:4:16: Unexpected `*`, expecting `class name` on line 4.\nerror18.ces:6:12: Unexpected `"`, expecting `class name` on line 6.', 'Unexpected characters in class names.');
 
         start();
     });

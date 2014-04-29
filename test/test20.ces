@@ -1,0 +1,7 @@
+#appendButton $click #appendParagraph {
+    text: += "appended content ";
+}
+
+#appendHTMLButton $click #appendHTMLParagraph {
+    html: += " <strong>new html</strong>";
+}

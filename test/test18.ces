@@ -1,7 +1,7 @@
 dom $ready .secret-text {
-    classes: +hidden;
+    class: +hidden;
 }
 
 .secret .secret-toggle $click this + .secret-text {
-    classes: !hidden;
+    class: !hidden;
 }

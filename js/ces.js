@@ -24,14 +24,6 @@
 
 (function(ces) {
     /*
-     * CES property / JavaScript attributes mapping.
-     */
-    var JsAttributes = {
-        'html': 'innerHTML',
-        'text': 'textContent'
-    };
-
-    /*
      * State of the CES parsing.
      */
     var State = {
@@ -75,13 +67,10 @@
      */
     function Action() {
         this.attributes = [];
-        this.cssClasses = [];
         this.cssSelector = '';
         this.cssProperties = [];
         this.event = '';
         this.eventSelector = '';
-        this.jsProperties = [];
-        this.methods = [];
         this.methods = [];
     }
 
@@ -93,24 +82,10 @@
     };
 
     /*
-     * Add a CSS class change to the action.
-     */
-    Action.prototype.addClass = function(cssClass) {
-        this.cssClasses.push(cssClass);
-    };
-
-    /*
      * Add a CSS property to the action.
      */
     Action.prototype.addCss = function(property) {
         this.cssProperties.push(property);
-    };
-
-    /*
-     * Add a JS property to the action.
-     */
-    Action.prototype.addJs = function(property) {
-        this.jsProperties.push(property);
     };
 
     /*
@@ -127,14 +102,6 @@
         this.name = '';
         this.remove = false;
         this.value = '';
-    }
-
-    /*
-     * Class to store a CSS class add/remove/toggle action.
-     */
-    function CssClass() {
-        this.action = 'add';
-        this.name = '';
     }
 
     /*
@@ -159,19 +126,10 @@
     }
 
     /*
-     * Class to store a JS property.
-     */
-    function JsProperty() {
-        this.decrement = false;
-        this.increment = false;
-        this.name = '';
-        this.value = '';
-    }
-
-    /*
      * Class to store a JS method.
      */
     function JsMethod(name) {
+        this.context = null;
         this.name = name;
         this.parameter = undefined;
     }
@@ -190,6 +148,7 @@
      */
     function actions2js(actions) {
         var action;
+        var errorMessage = '';
         var i;
         var isDomReady;
         var j;
@@ -232,7 +191,12 @@
                 method = action.methods[j];
                 js += prefix;
                 if(isMacroMethod(method.name)) {
-                    js += methods[method.name].body(selector, method.parameter);
+                    try {
+                        js += methods[method.name].body(selector, method.parameter, method.context);
+                    }
+                    catch(exception) {
+                        errorMessage += exception + '\n';
+                    }
                 }
                 else {
                     if(method.parameter != undefined) {
@@ -260,13 +224,6 @@
                 }
                 js += suffix;
             }
-            for(j = 0 ; j < action.jsProperties.length ; ++j) {
-                name = action.jsProperties[j].name;
-                value = action.jsProperties[j].value;
-                js += prefix;
-                js += '        ' + selector + '.' + JsAttributes[name] + ' = ' + value + ';\n';
-                js += suffix;
-            }
             for(j = 0 ; j < action.attributes.length ; ++j) {
                 name = action.attributes[j].name;
                 //TODO: problem name.length == 0.
@@ -278,11 +235,6 @@
                     value = action.attributes[j].value;
                     js += '        ' + selector + '.setAttribute("' + name + '", "' + value + '");\n';
                 }
-                js += suffix;
-            }
-            for(j = 0 ; j < action.cssClasses.length ; ++j) {
-                js += prefix;
-                js += '        ' + selector + '.classList.' + action.cssClasses[j].action + '("' + action.cssClasses[j].name + '");\n';
                 js += suffix;
             }
             if('this' != selector) {
@@ -310,6 +262,11 @@
             }
             js += '})();\n';
         }
+
+        if(errorMessage.length > 0) {
+            throw errorMessage.substring(0, errorMessage.length - 1);
+        }
+
         return js;
     }
 
@@ -564,9 +521,7 @@
         var actions = [];
         var attribute = new Attribute();
         var char = '';
-        var classAction = 'add';
         var columnNumber = 0;
-        var cssClass = new CssClass();
         var cssProperty = new CssProperty();
         var endsWithQuote = false;
         var error;
@@ -575,10 +530,8 @@
         var expecting = '';
         var hasAttributeValue = false;
         var i;
-        var isClassList = false;
         var lastState = State.ROOT;
         var lineNumber = 1;
-        var jsProperty = new JsProperty();
         var message = '';
         var method = null;
         var needsAttributeValue = false;
@@ -602,6 +555,26 @@
             columnNumber = data.column;
             lineNumber += data.newLineCount;
             state = newState;
+        }
+
+        function getContext() {
+            var nextCharColumn = columnNumber;
+            var nextCharLine = lineNumber;
+            var position = i + 1;
+            while(position < source.length && isWhiteSpace(source[position])) {
+                if(isNewLine(source[position])) {
+                    ++nextCharLine;
+                    nextCharColumn = 0;
+                }
+                ++nextCharColumn;
+                ++position;
+            }
+            ++nextCharColumn;
+            return {
+                columnNumber: nextCharColumn,
+                lineNumber: nextCharLine,
+                url: url
+            };
         }
 
         function getEvent() {
@@ -773,12 +746,7 @@
                     if(':' == char) {
                         if(isMethod(token)) {
                             method = new JsMethod(token);
-                        }
-                        else if(token == 'classes') {
-                            isClassList = true;
-                        }
-                        else if(token in JsAttributes) {
-                            jsProperty.name = token;
+                            method.context = getContext();
                         }
                         else {
                             cssProperty.name = token;
@@ -787,7 +755,10 @@
                         start = i + 1;
                     }
                     else if(';' == char && isMethod(token)) {
-                        action.addMethod(new JsMethod(token));
+                        method = new JsMethod(token);
+                        method.context = getContext();
+                        action.addMethod(method);
+                        method = null;
                         state = State.BODY;
                     }
                     else if(!isIdentifier(char) && !isWhiteSpace(char)) {
@@ -798,7 +769,7 @@
                     }
                     break;
                 case State.PROPERTY_VALUE:
-                    if(('\'' == char || '"' == char) && !isClassList) {
+                    if('\'' == char || '"' == char) {
                         if(quote.length == 0) {
                             quote = char;
                         }
@@ -812,55 +783,12 @@
                             action.addMethod(method);
                             method = null;
                         }
-                        else if(isClassList) {
-                            cssClass.name = source.substring(start, i).trim();
-                            if(cssClass.name.length > 0) {
-                                cssClass.action = classAction;
-                                action.addClass(cssClass);
-                                cssClass = new CssClass();
-                                classAction = 'add';
-                                isClassList = false;
-                            }
-                        }
                         else if(cssProperty.name.length > 0) {
                             cssProperty.value = source.substring(start, i).trim();
                             action.addCss(cssProperty);
                             cssProperty = new CssProperty();
                         }
-                        else if(jsProperty.name.length > 0) {
-                            jsProperty.value = source.substring(start, i).trim();
-                            action.addJs(jsProperty);
-                            jsProperty = new JsProperty();
-                        }
                         state = State.BODY;
-                    }
-                    else if(isClassList) {
-                        if('-' == char) {
-                            classAction = 'remove';
-                            start = i + 1;
-                        }
-                        else if('+' == char) {
-                            classAction = 'add';
-                            start = i + 1;
-                        }
-                        else if('!' == char) {
-                            classAction = 'toggle';
-                            start = i + 1;
-                        }
-                        else if(isWhiteSpace(char)) {
-                            cssClass.name = source.substring(start, i).trim();
-
-                            if(cssClass.name.length > 0) {
-                                cssClass.action = classAction;
-                                action.addClass(cssClass);
-                                cssClass = new CssClass();
-                                classAction = 'add';
-                                start = i;
-                            }
-                        }
-                        else if(!isIdentifier(char)) {
-                            addError('class name');
-                        }
                     }
                     else if(0 == quote.length && (']' == char || '[' == char || '{' == char || '}' == char)) {
                         addError(';');
@@ -1048,17 +976,101 @@
     /*
      * Add built-in methods.
      */
+    /*
+     * Give the focus to the selected element.
+     */
     ces.addMethod('focus', function(selector) {
         selector.focus()
     });
 
-    ces.addMethod('prevent', function(selector, event) {
-        event.preventDefault();
-    });
+    /*
+     * Prevent the default action on the selected element.
+     */
+    ces.addMethod('prevent', function(selector) {
+        return 'event.preventDefault();\n';
+    }, true);
 
+    /*
+     * Scroll to the selected element.
+     */
     ces.addMethod('scroll', function(selector) {
         selector.scrollIntoView();
     });
+
+    /*
+     * Change the text content of the selected element.
+     */
+    ces.addMethod('text', function(selector, text) {
+        if('+=' == text.substr(0, 2)) {
+            return selector + '.textContent ' + text + ';\n';
+        }
+        else {
+            return selector + '.textContent = ' + text + ';\n';
+        }
+    }, true);
+
+    /*
+     * Change the text content of the selected element.
+     */
+    ces.addMethod('html', function(selector, html) {
+        if('+=' == html.substr(0, 2)) {
+            return selector + '.innerHTML ' + html + ';\n';
+        }
+        else {
+            return selector + '.innerHTML = ' + html + ';\n';
+        }
+    }, true);
+
+    /*
+     * Add, remove and/or toggle CSS classes of the selected element.
+     */
+    ces.addMethod('class', function(selector, classes, context) {
+        var char;
+        var classAction;
+        var columnNumber = context.columnNumber;
+        var end;
+        var i;
+        var js = '';
+        var lineNumber = context.lineNumber;
+        var name;
+        var start = 0;
+
+        for(i = 0 ; i < classes.length ; ++i) {
+            end = classes.length - 1 == i;
+            char = classes[i];
+            if('-' == char) {
+                classAction = 'remove';
+                start = i + 1;
+            }
+            else if('+' == char) {
+                classAction = 'add';
+                start = i + 1;
+            }
+            else if('!' == char) {
+                classAction = 'toggle';
+                start = i + 1;
+            }
+            else if(isWhiteSpace(char) || end) {
+                if(end) {
+                    ++i;
+                }
+                name = classes.substring(start, i).trim();
+
+                js += selector + '.classList.' + classAction + '("' + name + '");\n';
+            }
+            else if(!isIdentifier(char)) {
+                throw context.url + ':' + lineNumber + ':' + columnNumber + ': Unexpected `' + char + '`, expecting `class name` on line ' + lineNumber + '.';
+            }
+            if(isNewLine(char)) {
+                columnNumber = 0;
+                ++lineNumber;
+            }
+            ++columnNumber;
+        }
+
+        return js;
+    }, true);
+
 }(window.ces = window.ces || {}));
 
 window.addEventListener('load', ces.load, false);
