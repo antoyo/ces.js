@@ -1026,7 +1026,7 @@
      */
     ces.addMethod('class', function(selector, classes, context) {
         var char;
-        var classAction;
+        var classAction = '';
         var columnNumber = context.columnNumber;
         var end;
         var i;
@@ -1038,15 +1038,15 @@
         for(i = 0 ; i < classes.length ; ++i) {
             end = classes.length - 1 == i;
             char = classes[i];
-            if('-' == char) {
+            if(0 == classAction.length && '-' == char) {
                 classAction = 'remove';
                 start = i + 1;
             }
-            else if('+' == char) {
+            else if(0 == classAction.length && '+' == char) {
                 classAction = 'add';
                 start = i + 1;
             }
-            else if('!' == char) {
+            else if(0 == classAction.length && '!' == char) {
                 classAction = 'toggle';
                 start = i + 1;
             }
@@ -1057,8 +1057,9 @@
                 name = classes.substring(start, i).trim();
 
                 js += selector + '.classList.' + classAction + '("' + name + '");\n';
+                classAction = '';
             }
-            else if(!isIdentifier(char)) {
+            else if(!isIdentifier(char) && '!' != char && '-' != char && '+' != char) {
                 throw context.url + ':' + lineNumber + ':' + columnNumber + ': Unexpected `' + char + '`, expecting `class name` on line ' + lineNumber + '.';
             }
             if(isNewLine(char)) {

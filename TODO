@@ -1,6 +1,3 @@
-Test with multiple increments and decrements to see if all of them are taken into account.
-Test with css classes starting with -, + or ! if these are valid.
-
 Support RequireJS.
 
 Support for conditions via inner block. For instance:

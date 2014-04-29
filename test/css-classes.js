@@ -22,7 +22,7 @@
  */
 
 asyncTest('CSS Classes', function() {
-    expect(36);
+    expect(54);
 
     ces.download('test3.ces', function(source) {
         stop();
@@ -124,6 +124,8 @@ asyncTest('CSS Classes', function() {
         button3.id = 'button3';
         button3.textContent = 'Button';
         button3.classList.add('red');
+        button3.classList.add('+plus');
+        button3.classList.add('!minus');
         body.appendChild(button3);
 
         var paragraph2 = document.createElement('p');
@@ -138,6 +140,12 @@ asyncTest('CSS Classes', function() {
         ok(!button3.classList.contains('blue'), 'Class blue is not set.');
         ok(!button3.classList.contains('yellow'), 'Class yellow is not set.');
         ok(!button3.classList.contains('green'), 'Class green is not set.');
+        ok(!button3.classList.contains('-minus'), 'Class -minus is not set.');
+        ok(button3.classList.contains('+plus'), 'Class +plus is set.');
+        ok(button3.classList.contains('!minus'), 'Class !minus is set.');
+        ok(!button3.classList.contains('!plus'), 'Class !plus is not set.');
+        ok(!button3.classList.contains('-toggle'), 'Class -toggle is not set.');
+        ok(!button3.classList.contains('+toggle'), 'Class +toggle is not set.');
 
         trigger(button3, 'click');
 
@@ -145,6 +153,21 @@ asyncTest('CSS Classes', function() {
         ok(!button3.classList.contains('blue'), 'Class blue is not set.');
         ok(button3.classList.contains('yellow'), 'Class yellow is set.');
         ok(!button3.classList.contains('green'), 'Class green is not set.');
+        ok(button3.classList.contains('-minus'), 'Class -minus is set.');
+        ok(!button3.classList.contains('+plus'), 'Class +plus is not set.');
+        ok(!button3.classList.contains('!minus'), 'Class !minus is not set.');
+        ok(button3.classList.contains('!plus'), 'Class !plus is set.');
+        ok(button3.classList.contains('-toggle'), 'Class -toggle is set.');
+        ok(button3.classList.contains('+toggle'), 'Class +toggle is set.');
+
+        trigger(button3, 'click');
+
+        ok(button3.classList.contains('-minus'), 'Class -minus is set.');
+        ok(!button3.classList.contains('+plus'), 'Class +plus is not set.');
+        ok(!button3.classList.contains('!minus'), 'Class !minus is not set.');
+        ok(button3.classList.contains('!plus'), 'Class !plus is set.');
+        ok(!button3.classList.contains('-toggle'), 'Class -toggle is not set.');
+        ok(!button3.classList.contains('+toggle'), 'Class +toggle is not set.');
 
         start();
     });

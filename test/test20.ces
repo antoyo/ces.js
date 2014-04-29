@@ -5,3 +5,13 @@
 #appendHTMLButton $click #appendHTMLParagraph {
     html: += " <strong>new html</strong>";
 }
+
+#multipleAppend $click {
+    text: += " new";
+    text: += " text";
+}
+
+#multipleHTMLAppend $click {
+    html: += " <em>new</em>";
+    html: += " <strong>text</strong>";
+}

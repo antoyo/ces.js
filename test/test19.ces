@@ -13,3 +13,11 @@
     border-top-width: -=1px;
     width: -= 10px;
 }
+
+#multiple-increment $click {
+    width: += 10px;
+    width: += 20px;
+    width: -= 1px;
+    width: -= 2px;
+    width: -= 2px;
+}

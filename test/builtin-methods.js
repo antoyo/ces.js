@@ -22,7 +22,7 @@
  */
 
 asyncTest('Built-in Methods', function() {
-    expect(14);
+    expect(18);
 
     ces.download('test.ces', function(source) {
         stop();
@@ -124,6 +124,16 @@ asyncTest('Built-in Methods', function() {
         appendHTMLParagraph.innerHTML = 'HTML';
         body.appendChild(appendHTMLParagraph);
 
+        var multipleAppendParagraph = document.createElement('p');
+        multipleAppendParagraph.id = 'multipleAppend';
+        multipleAppendParagraph.textContent = 'Text';
+        body.appendChild(multipleAppendParagraph);
+
+        var multipleAppendHTMLParagraph = document.createElement('p');
+        multipleAppendHTMLParagraph.id = 'multipleHTMLAppend';
+        multipleAppendHTMLParagraph.innerHTML = 'HTML';
+        body.appendChild(multipleAppendHTMLParagraph);
+
         var js = ces.ces2js(source, 'test20.ces');
         ces.execute(js);
 
@@ -146,6 +156,18 @@ asyncTest('Built-in Methods', function() {
         trigger(appendHTMLButton, 'click');
 
         equal(appendHTMLParagraph.innerHTML, 'HTML <strong>new html</strong> <strong>new html</strong>', 'HTML is set to "HTML <strong> new html</strong> <strong> new html</strong>".');
+
+        equal(multipleAppendParagraph.textContent, 'Text', 'Text is set to "Text".');
+
+        trigger(multipleAppendParagraph, 'click');
+
+        equal(multipleAppendParagraph.textContent, 'Text new text', 'Text is set to "Text new text".');
+
+        equal(multipleAppendHTMLParagraph.innerHTML, 'HTML', 'HTML is set to "HTML".');
+
+        trigger(multipleAppendHTMLParagraph, 'click');
+
+        equal(multipleAppendHTMLParagraph.innerHTML, 'HTML <em>new</em> <strong>text</strong>', 'HTML is set to "HTML <em>new</em> <strong>text</strong>".');
 
         start();
     });

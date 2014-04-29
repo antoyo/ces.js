@@ -22,7 +22,7 @@
  */
 
 asyncTest('Increment and Decrement CSS Values', function() {
-    expect(12);
+    expect(15);
 
     ces.download('test19.ces', function(source) {
         var body = document.querySelector('#qunit-fixture');
@@ -43,6 +43,12 @@ asyncTest('Increment and Decrement CSS Values', function() {
         div.style.setProperty('border', '1px solid black');
         div.style.setProperty('width', '100px');
         body.appendChild(div);
+
+        var multipleIncrement = document.createElement('div');
+        multipleIncrement.id = 'multiple-increment';
+        multipleIncrement.textContent = 'Multiple Increment';
+        multipleIncrement.style.setProperty('width', '100px');
+        body.appendChild(multipleIncrement);
 
         var js = ces.ces2js(source, 'test19.ces');
         ces.execute(js);
@@ -74,6 +80,16 @@ asyncTest('Increment and Decrement CSS Values', function() {
 
         equal(div.style.getPropertyValue('border-bottom-width'), '0px', 'Border Bottom Width is set to "0px".');
         equal(div.style.getPropertyValue('width'), '90px', 'Width is set to "90px".');
+
+        equal(multipleIncrement.style.getPropertyValue('width'), '100px', 'Width is set to "100px".');
+
+        trigger(multipleIncrement, 'click');
+
+        equal(multipleIncrement.style.getPropertyValue('width'), '125px', 'Width is set to "125px".');
+
+        trigger(multipleIncrement, 'click');
+
+        equal(multipleIncrement.style.getPropertyValue('width'), '150px', 'Width is set to "150px".');
 
         start();
     });
