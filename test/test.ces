@@ -14,3 +14,9 @@ button#button $click {
     background-image: url("image.png");
     display: block;
 }
+
+#special $click {
+    text: "semi-colon ;";
+    text: "//comment";
+    text: "/* comment */";
+}

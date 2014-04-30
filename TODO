@@ -1,10 +1,6 @@
 Support an {{ index }} token for the methods text and html to allow different insertion at each iteration.
 Add a start index property to decide at which index to start.
 
-Add built-in redirect method.
-
-Support RequireJS.
-
 Support for conditions via inner block. For instance:
 .button $click {
     .red {
@@ -19,6 +15,7 @@ Support for conditions via inner block. For instance:
 
 Support form validation.
 
+Use JSHint to check the JavaScript source code.
 Tests with other web browser.
 Create jQuery UI widgets with CES and add needed feature (accordion, autocomplete, dialog, menu, progressbar, slider, spinner, tabs, tooltip).
 
@@ -26,3 +23,5 @@ These probably won't be needed as they will be implemented by web browsers:
 Add support for CSS variables (changing value)
 Add the subject selector (perhaps ! from CSS4) to allow changing properties of parent elements.
 Look to support other new features from CSS 3 and CSS 4.
+
+Support RequireJS.

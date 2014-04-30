@@ -22,7 +22,7 @@
  */
 
 asyncTest('Built-in Methods', function() {
-    expect(22);
+    expect(23);
 
     ces.download('test.ces', function(source) {
         stop();
@@ -102,6 +102,8 @@ asyncTest('Built-in Methods', function() {
     });
 
     ces.download('test20.ces', function(source) {
+        stop();
+
         var body = document.querySelector('#qunit-fixture');
 
         var appendButton = document.createElement('button');
@@ -190,6 +192,21 @@ asyncTest('Built-in Methods', function() {
         trigger(quoteHTML, 'click');
 
         equal(quoteHTML.innerHTML, 'Quote <strong>\"</strong> value', 'HTML is set to "Quote <strong>\"</strong> value".')
+
+        start();
+    });
+
+    ces.download('test21.ces', function(source) {
+        var body = document.querySelector('#qunit-fixture');
+
+        var ghPar = document.createElement('par');
+        ghPar.id = 'ghPar';
+        ghPar.textContent = 'Link';
+        body.appendChild(ghPar);
+
+        var js = ces.ces2js(source, 'test21.ces');
+
+        ok(js.indexOf('location.href = "https://github.com/";') != -1, 'Redirect is in the generated JavaScript.');
 
         start();
     });

@@ -199,7 +199,7 @@
                     }
                 }
                 else {
-                    if(method.parameter != undefined) {
+                    if(typeof method.parameter !== 'undefined') {
                         js += '        ces.call("' + method.name + '", ' + selector + ', "' + addSlashes(method.parameter) + '", event);\n';
                     }
                     else {
@@ -276,7 +276,7 @@
      * A normal method will be called at the execution.
      */
     ces.addMethod = function(name, method, isMacro) {
-        if(isMacro == undefined) {
+        if(typeof isMacro === 'undefined') {
             isMacro = false;
         }
         methods[name] = new Method(name, method, isMacro);
@@ -342,7 +342,7 @@
         var scriptTag = document.createElement('script');
         scriptTag.textContent = js;
         scriptTag.type = 'text/javascript';
-        if(oldScriptTag != undefined) {
+        if(typeof oldScriptTag !== 'undefined') {
             oldScriptTag.parentNode.replaceChild(scriptTag, oldScriptTag);
         }
         else {
@@ -507,11 +507,7 @@
         for(i = 0 ; i < length ; ++i) {
             if('text/ces' == scriptTags[i].type) {
                 if(scriptTags[i].hasAttribute('src')) {
-                    (function(url, relativeUrl, scriptTag) {
-                        ces.download(url, function(source) {
-                            ces.execute(ces.ces2js(source, relativeUrl), scriptTag);
-                        });
-                    })(scriptTags[i].src, scriptTags[i].getAttribute('src'), scriptTags[i]);
+                    loadHandler(scriptTags[i].src, scriptTags[i].getAttribute('src'), scriptTags[i]);
                 }
                 else {
                     ces.execute(ces.ces2js(scriptTags[i].textContent), scriptTags[i]);
@@ -519,6 +515,15 @@
             }
         }
     };
+
+    /*
+     * Download and execute a CES file.
+     */
+    function loadHandler(url, relativeUrl, scriptTag) {
+        ces.download(url, function(source) {
+            ces.execute(ces.ces2js(source, relativeUrl), scriptTag);
+        });
+    }
 
     /*
      * Parse the Cascading Event Sheet and return the resulting JavaScript source code.
@@ -550,10 +555,10 @@
 
         function addError(expecting, newState, token) {
             var data = {};
-            if(undefined == newState) {
+            if('undefined' === typeof newState) {
                 newState = State.BODY;
             }
-            if(undefined == token) {
+            if('undefined' === typeof token) {
                 token = getNextToken(source, i);
             }
 
@@ -594,7 +599,7 @@
         for(i = 0 ; i < source.length ; ++i) {
             char = source[i];
             ++columnNumber;
-            if('/' == char) {
+            if('/' == char && 0 === quote.length) {
                 if((i + 1 < source.length)) {
                     if('*' == source[i + 1]) {
                         lastState = state;
@@ -697,18 +702,18 @@
                     break;
                 case State.CSS_SELECTOR:
                     if(('\'' == char || '"' == char)) {
-                        if(quote.length == 0) {
+                        if(quote.length === 0) {
                             quote = char;
                         }
                         else {
                             quote = '';
                         }
                     }
-                    else if(0 == quote.length && '{' == char) {
+                    else if(0 === quote.length && '{' == char) {
                         action.cssSelector = replaceNewLines(source.substring(start, i)).trim();
                         state = State.BODY;
                     }
-                    else if(0 == quote.length && '}' == char) {
+                    else if(0 === quote.length && '}' == char) {
                         addError('{', State.ROOT);
                     }
                     break;
@@ -726,19 +731,19 @@
                     break;
                 case State.EVENT_SELECTOR:
                     if(('\'' == char || '"' == char)) {
-                        if(quote.length == 0) {
+                        if(quote.length === 0) {
                             quote = char;
                         }
                         else {
                             quote = '';
                         }
                     }
-                    else if(quote.length == 0 && '$' == char) {
+                    else if(quote.length === 0 && '$' == char) {
                         action.eventSelector = replaceNewLines(source.substring(start, i)).trim();
                         start = i + 1;
                         state = State.EVENT;
                     }
-                    else if(quote.length == 0 && ('{' == char || '}' == char)) {
+                    else if(quote.length === 0 && ('{' == char || '}' == char)) {
                         addError('$event');
                     }
                     break;
@@ -777,19 +782,19 @@
                     }
                     break;
                 case State.PROPERTY_VALUE:
-                    if('\\' == char && 0 != quote.length) {
+                    if('\\' == char && 0 !== quote.length) {
                         skipNext = !skipNext;
                     }
                     else if(!skipNext && ('\'' == char || '"' == char)) {
-                        if(quote.length == 0) {
+                        if(quote.length === 0) {
                             quote = char;
                         }
                         else {
                             quote = '';
                         }
                     }
-                    else if(';' == char) {
-                        if(method != null) {
+                    else if(0 === quote.length && ';' == char) {
+                        if(method !== null) {
                             method.parameter = source.substring(start, i).trim();
                             action.addMethod(method);
                             method = null;
@@ -801,7 +806,7 @@
                         }
                         state = State.BODY;
                     }
-                    else if(0 == quote.length && (']' == char || '[' == char || '{' == char || '}' == char)) {
+                    else if(0 === quote.length && (']' == char || '[' == char || '{' == char || '}' == char)) {
                         addError(';');
                         if(';' != source[i]) {
                             state = State.ROOT;
@@ -969,7 +974,7 @@
     ces.processSelector = function(selector, eventTarget, attributes) {
         var index;
         var tokens = parseSelector(selector);
-        if(0 == eventTarget.id.length) {
+        if(0 === eventTarget.id.length) {
             attributes.generatedId = generateId();
             eventTarget.id = attributes.generatedId;
         }
@@ -1014,10 +1019,6 @@
                 context.columnNumber += i;
                 throw createErrorMessage(context, getNextToken(string, i), ';');
             }
-            else if(!end && string.length - 1 == i) {
-                context.columnNumber += i;
-                throw createErrorMessage(context, getNextToken(string, i), '"');
-            }
             else {
                 skipNext = false;
             }
@@ -1031,7 +1032,7 @@
      * Give the focus to the selected element.
      */
     ces.addMethod('focus', function(selector) {
-        selector.focus()
+        selector.focus();
     });
 
     /*
@@ -1132,6 +1133,15 @@
         }
 
         return js;
+    }, true);
+
+    /*
+     * Redirect to another url.
+     */
+    ces.addMethod('redirect', function(selector, url, context) {
+        url = url.trim();
+        validateStringLiteral(url, context);
+        return 'location.href = "' + url.substr(1, url.length - 2) + '";\n';
     }, true);
 
 }(window.ces = window.ces || {}));

@@ -1,0 +1,3 @@
+#ghPar $click {
+    redirect: "https://github.com/";
+}

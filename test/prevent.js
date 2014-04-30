@@ -23,7 +23,7 @@
  */
 
 asyncTest('Prevent Default Event', function() {
-    expect(2);
+    expect(1);
 
     ces.download('test14.ces', function(source) {
         var body = document.querySelector('#qunit-fixture');
@@ -39,13 +39,8 @@ asyncTest('Prevent Default Event', function() {
         body.appendChild(form);
 
         var js = ces.ces2js(source, 'test14.ces');
-        ces.execute(js);
 
-        ok(!link.style.getPropertyValue('color'), 'Color is not set.');
-
-        trigger(form, 'submit');
-
-        equal(link.style.getPropertyValue('color'), 'green', 'Color is set to "green".');
+        ok(js.indexOf('event.preventDefault();') != -1, 'Event prevent default is in the JavaScript source code.');
 
         start();
     });

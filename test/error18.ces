@@ -1,7 +1,7 @@
 #button $click {
-    class: +bl"ue;
-    class: -r'ed;
+    class: +bl@ue;
+    class: -r#ed;
     class: !yel*low;
     class: +red
-        !bl"ue;
+        !bl@ue;
 }
