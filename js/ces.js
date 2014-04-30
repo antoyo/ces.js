@@ -117,11 +117,11 @@
     /*
      * Parse error class.
      */
-    function Error(filename, line, column, unexpected, expecting) {
-        this.column = column;
+    function Error(url, lineNumber, columnNumber, unexpected, expecting) {
+        this.columnNumber = columnNumber;
         this.expecting = expecting;
-        this.filename = filename;
-        this.line = line;
+        this.url = url;
+        this.lineNumber = lineNumber;
         this.unexpected = unexpected;
     }
 
@@ -312,6 +312,13 @@
     }
 
     /*
+     * Create an error message from the given context.
+     */
+    function createErrorMessage(context, unexpected, expecting) {
+        return context.url + ':' + context.lineNumber + ':' + context.columnNumber + ': Unexpected `' + unexpected + '`, expecting `' + expecting + '` on line ' + context.lineNumber + '.';
+    }
+
+    /*
      * Download the file from url, then execute callback.
      * The callback function receives the downloaded file content in its first parameter.
      */
@@ -362,7 +369,7 @@
      */
     function getNextToken(source, i) {
         var start;
-        while(isWhiteSpace(source[i]) && i < source.length) {
+        while(i < source.length && isWhiteSpace(source[i])) {
             ++i;
         }
         if(i == source.length) {
@@ -370,7 +377,7 @@
         }
         if(isIdentifier(source[i])) {
             start = i;
-            while(isIdentifier(source[i]) && i < source.length) {
+            while(i < source.length && isIdentifier(source[i])) {
                 ++i;
             }
             return source.substring(start, i);
@@ -865,7 +872,7 @@
         if(errors.length > 0) {
             for(errorIndex in errors) {
                 error = errors[errorIndex];
-                message += error.filename + ':' + error.line + ':' + error.column + ': Unexpected `' + error.unexpected + '`, expecting `' + error.expecting + '` on line ' + error.line + '.\n';
+                message += createErrorMessage(error, error.unexpected, error.expecting) + '\n';
             }
             message = message.substring(0, message.length - 1);
             throw message;
@@ -981,6 +988,43 @@
     }
 
     /*
+     * Validate a string literal.
+     */
+    function validateStringLiteral(string, context) {
+        var char;
+        var end = false;
+        var i;
+        var skipNext = false;
+        if('"' != string[0]) {
+            throw createErrorMessage(context, getNextToken(string, 0), '"');
+        }
+        for(i = 1 ; i < string.length ; ++i) {
+            char = string[i];
+            if('\\' == char) {
+                skipNext = !skipNext;
+            }
+            else if(!skipNext && '"' == char) {
+                end = true;
+            }
+            else if(!end && isNewLine(char)) {
+                context.columnNumber += i;
+                throw createErrorMessage(context, 'newline', '"');
+            }
+            else if(end && !isWhiteSpace(char)) {
+                context.columnNumber += i;
+                throw createErrorMessage(context, getNextToken(string, i), ';');
+            }
+            else if(!end && string.length - 1 == i) {
+                context.columnNumber += i;
+                throw createErrorMessage(context, getNextToken(string, i), '"');
+            }
+            else {
+                skipNext = false;
+            }
+        }
+    }
+
+    /*
      * Add built-in methods.
      */
     /*
@@ -1007,11 +1051,13 @@
     /*
      * Change the text content of the selected element.
      */
-    ces.addMethod('text', function(selector, text) {
+    ces.addMethod('text', function(selector, text, context) {
         if('+=' == text.substr(0, 2)) {
+            validateStringLiteral(text.substr(2).trim(), context);
             return selector + '.textContent ' + text + ';\n';
         }
         else {
+            validateStringLiteral(text.trim(), context);
             return selector + '.textContent = ' + text + ';\n';
         }
     }, true);
@@ -1019,11 +1065,13 @@
     /*
      * Change the text content of the selected element.
      */
-    ces.addMethod('html', function(selector, html) {
+    ces.addMethod('html', function(selector, html, context) {
         if('+=' == html.substr(0, 2)) {
+            validateStringLiteral(html.substr(2).trim(), context);
             return selector + '.innerHTML ' + html + ';\n';
         }
         else {
+            validateStringLiteral(html.trim(), context);
             return selector + '.innerHTML = ' + html + ';\n';
         }
     }, true);
@@ -1072,7 +1120,9 @@
                 hasAction = false;
             }
             else if(!isIdentifier(char) && '!' != char && '-' != char && '+' != char) {
-                throw context.url + ':' + lineNumber + ':' + columnNumber + ': Unexpected `' + char + '`, expecting `class name` on line ' + lineNumber + '.';
+                context.columnNumber = columnNumber;
+                context.lineNumber = lineNumber;
+                throw createErrorMessage(context, char, 'class name');
             }
             if(isNewLine(char)) {
                 columnNumber = 0;

@@ -1,0 +1,27 @@
+#paragraphWrong $click {
+    text: missing;
+    text: "multi
+line";
+    text: missing";
+    text: mis"sing;
+    text: mi"ss"ing;
+    text: "miss"ing;
+    
+    text: "ok"  
+  ;
+
+    text: "missing;
+
+    html: missing;
+    html: "multi
+line";
+    html: missing";
+    html: mis"sing;
+    html: mi"ss"ing;
+    html: "miss"ing;
+    
+    html: "ok"  
+  ;
+
+    html: "missing;
+}

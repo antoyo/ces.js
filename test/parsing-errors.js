@@ -22,7 +22,7 @@
  */
 
 asyncTest('Parsing Errors', function() {
-    expect(18);
+    expect(19);
 
     ces.download('error.ces', function(source) {
         stop();
@@ -195,11 +195,21 @@ asyncTest('Parsing Errors', function() {
     });
 
     ces.download('error18.ces', function(source) {
-        /*stop();*/
+        stop();
 
         throws(function() {
             ces.ces2js(source, 'error18.ces');
         }, 'error18.ces:2:15: Unexpected `"`, expecting `class name` on line 2.\nerror18.ces:3:14: Unexpected `\'`, expecting `class name` on line 3.\nerror18.ces:4:16: Unexpected `*`, expecting `class name` on line 4.\nerror18.ces:6:12: Unexpected `"`, expecting `class name` on line 6.', 'Unexpected characters in class names.');
+
+        start();
+    });
+
+    ces.download('error19.ces', function(source) {
+        /*stop();*/
+
+        throws(function() {
+            ces.ces2js(source, 'error19.ces');
+        }, 'error19.ces:2:11: Unexpected `missing`, expecting `"` on line 2.\nerror19.ces:3:17: Unexpected `newline`, expecting `"` on line 3.\nerror19.ces:5:11: Unexpected `missing`, expecting `"` on line 5.\nerror19.ces:6:11: Unexpected `mis`, expecting `"` on line 6.\nerror19.ces:7:11: Unexpected `mi`, expecting `"` on line 7.\nerror19.ces:8:17: Unexpected `ing`, expecting `;` on line 8.\nerror19.ces:13:18: Unexpected `g`, expecting `"` on line 13.\nerror19.ces:15:11: Unexpected `missing`, expecting `"` on line 15.\nerror19.ces:16:17: Unexpected `newline`, expecting `"` on line 16.\nerror19.ces:18:11: Unexpected `missing`, expecting `"` on line 18.\nerror19.ces:19:11: Unexpected `mis`, expecting `"` on line 19.\nerror19.ces:20:11: Unexpected `mi`, expecting `"` on line 20.\nerror19.ces:21:17: Unexpected `ing`, expecting `;` on line 21.\nerror19.ces:26:18: Unexpected `g`, expecting `"` on line 26.', 'Missing quotes.');
 
         start();
     });

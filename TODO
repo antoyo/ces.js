@@ -1,7 +1,7 @@
 Support an {{ index }} token for the methods text and html to allow different insertion at each iteration.
 Add a start index property to decide at which index to start.
 
-Validate built-in method values.
+Add built-in redirect method.
 
 Support RequireJS.
 
@@ -16,6 +16,8 @@ Support for conditions via inner block. For instance:
         color: red;
     }
 }
+
+Support form validation.
 
 Tests with other web browser.
 Create jQuery UI widgets with CES and add needed feature (accordion, autocomplete, dialog, menu, progressbar, slider, spinner, tabs, tooltip).
