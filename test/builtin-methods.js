@@ -22,7 +22,7 @@
  */
 
 asyncTest('Built-in Methods', function() {
-    expect(18);
+    expect(22);
 
     ces.download('test.ces', function(source) {
         stop();
@@ -134,6 +134,16 @@ asyncTest('Built-in Methods', function() {
         multipleAppendHTMLParagraph.innerHTML = 'HTML';
         body.appendChild(multipleAppendHTMLParagraph);
 
+        var quote = document.createElement('div');
+        quote.id = 'quote';
+        quote.textContent = 'Quote';
+        body.appendChild(quote);
+
+        var quoteHTML = document.createElement('div');
+        quoteHTML.id = 'quoteHTML';
+        quoteHTML.innerHTML = 'Quote HTML';
+        body.appendChild(quoteHTML);
+
         var js = ces.ces2js(source, 'test20.ces');
         ces.execute(js);
 
@@ -168,6 +178,18 @@ asyncTest('Built-in Methods', function() {
         trigger(multipleAppendHTMLParagraph, 'click');
 
         equal(multipleAppendHTMLParagraph.innerHTML, 'HTML <em>new</em> <strong>text</strong>', 'HTML is set to "HTML <em>new</em> <strong>text</strong>".');
+
+        equal(quote.textContent, 'Quote', 'Text is set to "Quote".');
+
+        trigger(quote, 'click');
+
+        equal(quote.textContent, 'Quote \" value', 'Text is set to "Quote \" value".');
+
+        equal(quoteHTML.innerHTML, 'Quote HTML', 'HTML is set to "Quote HTML".');
+
+        trigger(quoteHTML, 'click');
+
+        equal(quoteHTML.innerHTML, 'Quote <strong>\"</strong> value', 'HTML is set to "Quote <strong>\"</strong> value".')
 
         start();
     });

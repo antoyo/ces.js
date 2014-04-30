@@ -536,6 +536,7 @@
         var method = null;
         var needsAttributeValue = false;
         var quote = '';
+        var skipNext = false;
         var start = 0;
         var state = State.ROOT;
         var token = '';
@@ -769,7 +770,10 @@
                     }
                     break;
                 case State.PROPERTY_VALUE:
-                    if('\'' == char || '"' == char) {
+                    if('\\' == char && 0 != quote.length) {
+                        skipNext = !skipNext;
+                    }
+                    else if(!skipNext && ('\'' == char || '"' == char)) {
                         if(quote.length == 0) {
                             quote = char;
                         }
@@ -796,6 +800,9 @@
                             state = State.ROOT;
                             ++i;
                         }
+                    }
+                    else {
+                        skipNext = false;
                     }
                     break;
                 case State.REMOVE_ATTRIBUTE:
@@ -1026,9 +1033,10 @@
      */
     ces.addMethod('class', function(selector, classes, context) {
         var char;
-        var classAction = '';
+        var classAction = 'add';
         var columnNumber = context.columnNumber;
         var end;
+        var hasAction = false;
         var i;
         var js = '';
         var lineNumber = context.lineNumber;
@@ -1038,17 +1046,20 @@
         for(i = 0 ; i < classes.length ; ++i) {
             end = classes.length - 1 == i;
             char = classes[i];
-            if(0 == classAction.length && '-' == char) {
+            if(!hasAction && '-' == char) {
                 classAction = 'remove';
                 start = i + 1;
+                hasAction = true;
             }
-            else if(0 == classAction.length && '+' == char) {
+            else if(!hasAction && '+' == char) {
                 classAction = 'add';
                 start = i + 1;
+                hasAction = true;
             }
-            else if(0 == classAction.length && '!' == char) {
+            else if(!hasAction && '!' == char) {
                 classAction = 'toggle';
                 start = i + 1;
+                hasAction = true;
             }
             else if(isWhiteSpace(char) || end) {
                 if(end) {
@@ -1057,7 +1068,8 @@
                 name = classes.substring(start, i).trim();
 
                 js += selector + '.classList.' + classAction + '("' + name + '");\n';
-                classAction = '';
+                classAction = 'add';
+                hasAction = false;
             }
             else if(!isIdentifier(char) && '!' != char && '-' != char && '+' != char) {
                 throw context.url + ':' + lineNumber + ':' + columnNumber + ': Unexpected `' + char + '`, expecting `class name` on line ' + lineNumber + '.';

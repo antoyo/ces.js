@@ -15,3 +15,11 @@
     html: += " <em>new</em>";
     html: += " <strong>text</strong>";
 }
+
+#quote $click {
+    text: "Quote \" value";
+}
+
+#quoteHTML $click {
+    html: "Quote <strong>\"</strong> value";
+}

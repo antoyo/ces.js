@@ -22,7 +22,7 @@
  */
 
 asyncTest('CSS Classes', function() {
-    expect(54);
+    expect(56);
 
     ces.download('test3.ces', function(source) {
         stop();
@@ -140,6 +140,7 @@ asyncTest('CSS Classes', function() {
         ok(!button3.classList.contains('blue'), 'Class blue is not set.');
         ok(!button3.classList.contains('yellow'), 'Class yellow is not set.');
         ok(!button3.classList.contains('green'), 'Class green is not set.');
+        ok(!button3.classList.contains('my_class'), 'Class my_class is not set.');
         ok(!button3.classList.contains('-minus'), 'Class -minus is not set.');
         ok(button3.classList.contains('+plus'), 'Class +plus is set.');
         ok(button3.classList.contains('!minus'), 'Class !minus is set.');
@@ -153,6 +154,7 @@ asyncTest('CSS Classes', function() {
         ok(!button3.classList.contains('blue'), 'Class blue is not set.');
         ok(button3.classList.contains('yellow'), 'Class yellow is set.');
         ok(!button3.classList.contains('green'), 'Class green is not set.');
+        ok(button3.classList.contains('my_class'), 'Class my_class is set.');
         ok(button3.classList.contains('-minus'), 'Class -minus is set.');
         ok(!button3.classList.contains('+plus'), 'Class +plus is not set.');
         ok(!button3.classList.contains('!minus'), 'Class !minus is not set.');

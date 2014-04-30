@@ -5,6 +5,7 @@
     class: +yellow !green;
     class: -blue !green;
     class: +-minus +!plus -+plus -!minus !-toggle !+toggle;
+    class: my_class;
 }
 
 #paragraph2 $click {

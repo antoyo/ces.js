@@ -1,3 +1,8 @@
+Support an {{ index }} token for the methods text and html to allow different insertion at each iteration.
+Add a start index property to decide at which index to start.
+
+Validate built-in method values.
+
 Support RequireJS.
 
 Support for conditions via inner block. For instance:
