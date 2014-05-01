@@ -1,0 +1,11 @@
+#toggleButton $click {
+    .button.red {
+        class: -red +blue;
+        color: blue;
+    }
+
+    .button.blue {
+        class: +red -blue;
+        color: red;
+    }
+}

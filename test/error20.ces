@@ -1,0 +1,24 @@
+button $click {
+    . {
+        color: red;
+    }
+
+    .test.{
+        color: red;
+    }
+
+    .class test {
+        color: red;
+    }
+
+    .class .test {
+        color: red;
+    }
+
+    .test
+        color: red;
+    }
+
+    .test {
+        color: red;
+}

@@ -22,7 +22,7 @@
  */
 
 asyncTest('Parsing Errors', function() {
-    expect(19);
+    expect(20);
 
     ces.download('error.ces', function(source) {
         stop();
@@ -31,7 +31,8 @@ asyncTest('Parsing Errors', function() {
             ces.ces2js(source, 'error.ces');
         }, 'error.ces:4:1: Unexpected `{`, expecting `$event` on line 4.\n' +
             'error.ces:8:15: Unexpected `{`, expecting `$event` on line 8.\n' + 
-            'error.ces:10:1: Unexpected `EOF`, expecting `}` on line 10.', 'Missing event and } tokens.');
+            'error.ces:10:1: Unexpected `EOF`, expecting `}` on line 10.',
+            'Missing event and } tokens.');
 
         start();
     });
@@ -41,7 +42,8 @@ asyncTest('Parsing Errors', function() {
 
         throws(function() {
             ces.ces2js(source, 'error2.ces');
-        }, 'error2.ces:2:1: Unexpected `}`, expecting `event selector` on line 2.', 'Unexpected } token.');
+        }, 'error2.ces:2:1: Unexpected `}`, expecting `event selector` on line 2.',
+            'Unexpected } token.');
 
         start();
     });
@@ -52,7 +54,8 @@ asyncTest('Parsing Errors', function() {
         throws(function() {
             ces.ces2js(source, 'error3.ces');
         }, 'error3.ces:2:10: Unexpected `=`, expecting `:` on line 2.\n' +
-            'error3.ces:6:1: Unexpected `EOF`, expecting `$event` on line 6.', 'Unexpected = and $event tokens.');
+            'error3.ces:6:1: Unexpected `EOF`, expecting `$event` on line 6.',
+            'Unexpected = and $event tokens.');
 
         start();
     });
@@ -63,7 +66,8 @@ asyncTest('Parsing Errors', function() {
         throws(function() {
             ces.ces2js(source, 'error4.ces');
         }, 'error4.ces:2:12: Unexpected `test`, expecting `"attribute value"` on line 2.\n' +
-            'error4.ces:5:22: Unexpected `}`, expecting `{` on line 5.', 'Missing " around attribute value and unexpected } token.');
+            'error4.ces:5:22: Unexpected `}`, expecting `{` on line 5.',
+            'Missing " around attribute value and unexpected } token.');
 
         start();
     });
@@ -77,7 +81,8 @@ asyncTest('Parsing Errors', function() {
             'error5.ces:3:14: Unexpected `=`, expecting `:` on line 3.\n' +
             'error5.ces:6:14: Unexpected `=`, expecting `:` on line 6.\n' +
             'error5.ces:7:14: Unexpected `=`, expecting `:` on line 7.\n' +
-            'error5.ces:8:1: Unexpected `}`, expecting `;` on line 8.', 'Missing " at the end of attribute value, ; after property value and unexpected = token.');
+            'error5.ces:8:1: Unexpected `}`, expecting `;` on line 8.',
+            'Missing " at the end of attribute value, ; after property value and unexpected = token.');
 
         start();
     });
@@ -90,7 +95,8 @@ asyncTest('Parsing Errors', function() {
         }, 'error6.ces:2:22: Unexpected `]`, expecting `;` on line 2.\n' +
             'error6.ces:3:22: Unexpected `[`, expecting `;` on line 3.\n' +
             'error6.ces:4:22: Unexpected `{`, expecting `;` on line 4.\n' +
-            'error6.ces:5:22: Unexpected `}`, expecting `;` on line 5.', 'Unexpected ]/[/}/{ token.');
+            'error6.ces:5:22: Unexpected `}`, expecting `;` on line 5.',
+            'Unexpected ]/[/}/{ token.');
 
         start();
     });
@@ -102,7 +108,8 @@ asyncTest('Parsing Errors', function() {
             ces.ces2js(source, 'error7.ces');
         }, 'error7.ces:2:12: Unexpected `+`, expecting `"attribute value"` on line 2.\n' +
             'error7.ces:6:14: Unexpected `=`, expecting `:` on line 6.\n' +
-            'error7.ces:7:1: Unexpected `EOF`, expecting `;` on line 7.', 'Unexpected + and = tokens and missing ;.');
+            'error7.ces:7:1: Unexpected `EOF`, expecting `;` on line 7.',
+            'Unexpected + and = tokens and missing ;.');
 
         start();
     });
@@ -113,7 +120,8 @@ asyncTest('Parsing Errors', function() {
         throws(function() {
             ces.ces2js(source, 'error8.ces');
         }, 'error8.ces:1:11: Unexpected `!`, expecting `$event` on line 1.\n' +
-            'error8.ces:5:9: Unexpected `}`, expecting `$event` on line 5.', 'Unexpected ! and } token before event.');
+            'error8.ces:5:9: Unexpected `}`, expecting `$event` on line 5.',
+            'Unexpected ! and } token before event.');
 
         start();
     });
@@ -132,7 +140,8 @@ asyncTest('Parsing Errors', function() {
             'error9.ces:8:12: Unexpected `"`, expecting `:` on line 8.\n' +
             'error9.ces:9:12: Unexpected `\'`, expecting `:` on line 9.\n' +
             'error9.ces:10:6: Unexpected `[`, expecting `attribute name` on line 10.\n' +
-            'error9.ces:11:18: Unexpected `;`, expecting `]` on line 11.', 'Unexpected = token after attribute value, unexpected tokens in attribute name, missing attribute name and unexpected tokens in property name.');
+            'error9.ces:11:18: Unexpected `;`, expecting `]` on line 11.',
+            'Unexpected = token after attribute value, unexpected tokens in attribute name, missing attribute name and unexpected tokens in property name.');
 
         start();
     });
@@ -142,7 +151,8 @@ asyncTest('Parsing Errors', function() {
 
         throws(function() {
             ces.ces2js(source, 'error10.ces');
-        }, 'error10.ces:2:7: Unexpected `=`, expecting `attribute name` on line 2.', 'Unexpected = token before attribute name.');
+        }, 'error10.ces:2:7: Unexpected `=`, expecting `attribute name` on line 2.',
+            'Unexpected = token before attribute name.');
 
         start();
     });
@@ -154,7 +164,8 @@ asyncTest('Parsing Errors', function() {
             ces.ces2js(source, 'error11.ces');
         }, 'error11.ces:2:18: Unexpected `-`, expecting `]` on line 2.\n' +
             'error11.ces:3:14: Unexpected `;`, expecting `:` on line 3.\n' +
-            'error11.ces:4:12: Unexpected `"`, expecting `=` on line 4.', 'Unexpected - token after attribute name, missing : after property name and missing = after attribute name.');
+            'error11.ces:4:12: Unexpected `"`, expecting `=` on line 4.',
+            'Unexpected - token after attribute name, missing : after property name and missing = after attribute name.');
 
         start();
     });
@@ -164,7 +175,8 @@ asyncTest('Parsing Errors', function() {
 
         throws(function() {
             ces.ces2js(source, 'error12.ces');
-        }, 'error12.ces:2:12: Unexpected `-`, expecting `"attribute value"` on line 2.', 'Unexpected - token before attribute value.');
+        }, 'error12.ces:2:12: Unexpected `-`, expecting `"attribute value"` on line 2.',
+            'Unexpected - token before attribute value.');
 
         start();
     });
@@ -177,7 +189,8 @@ asyncTest('Parsing Errors', function() {
         }, 'error13.ces:1:12: Unexpected `>`, expecting `$event` on line 1.\n' +
             'error13.ces:3:6: Unexpected `#`, expecting `attribute name` on line 3.\n' +
             'error13.ces:4:5: Unexpected `+`, expecting `css property name or html attribute` on line 4.\n' +
-            'error13.ces:6:1: Unexpected `EOF`, expecting `;` on line 6.', 'Unexpected > token in event, unexpected # in attribute name, unexpected + in property name and missing ;.');
+            'error13.ces:6:1: Unexpected `EOF`, expecting `;` on line 6.',
+            'Unexpected > token in event, unexpected # in attribute name, unexpected + in property name and missing ;.');
 
         start();
     });
@@ -190,7 +203,8 @@ asyncTest('Parsing Errors', function() {
         }, 'error14.ces:1:11: Unexpected `>`, expecting `$event` on line 1.\n' +
             'error14.ces:1:44: Unexpected `#`, expecting `attribute name` on line 1.\n' +
             'error14.ces:1:59: Unexpected `+`, expecting `css property name or html attribute` on line 1.\n' +
-            'error14.ces:2:1: Unexpected `EOF`, expecting `;` on line 2.', 'Errors in compressed file.');
+            'error14.ces:2:1: Unexpected `EOF`, expecting `;` on line 2.',
+            'Errors in compressed file.');
 
         start();
     });
@@ -203,7 +217,8 @@ asyncTest('Parsing Errors', function() {
         }, 'error15.ces:4:14: Unexpected `>`, expecting `$event` on line 4.\n' +
             'error15.ces:21:3: Unexpected `#`, expecting `attribute name` on line 21.\n' +
             'error15.ces:23:5: Unexpected `+`, expecting `css property name or html attribute` on line 23.\n' +
-            'error15.ces:34:1: Unexpected `EOF`, expecting `;` on line 34.', 'Errors in spaced file.');
+            'error15.ces:34:1: Unexpected `EOF`, expecting `;` on line 34.',
+            'Errors in spaced file.');
 
         start();
     });
@@ -214,7 +229,8 @@ asyncTest('Parsing Errors', function() {
         throws(function() {
             ces.ces2js(source, 'error16.ces');
         }, 'error16.ces:4:1: Unexpected `#`, expecting `css property name or html attribute` on line 4.\n' +
-            'error16.ces:6:1: Unexpected `EOF`, expecting `}` on line 6.', 'Missing }.');
+            'error16.ces:6:1: Unexpected `EOF`, expecting `}` on line 6.',
+            'Missing }.');
 
         start();
     });
@@ -225,7 +241,8 @@ asyncTest('Parsing Errors', function() {
         throws(function() {
             ces.ces2js(source, 'error17.ces');
         }, 'error17.ces:3:1: Unexpected `}`, expecting `{` on line 3.\n' +
-            'error17.ces:7:1: Unexpected `}`, expecting `{` on line 7.', 'Missing {.');
+            'error17.ces:7:1: Unexpected `}`, expecting `{` on line 7.',
+            'Missing {.');
 
         start();
     });
@@ -238,13 +255,14 @@ asyncTest('Parsing Errors', function() {
         }, 'error18.ces:2:15: Unexpected `@`, expecting `class name` on line 2.\n' +
             'error18.ces:3:14: Unexpected `#`, expecting `class name` on line 3.\n' +
             'error18.ces:4:16: Unexpected `*`, expecting `class name` on line 4.\n' +
-            'error18.ces:6:12: Unexpected `@`, expecting `class name` on line 6.', 'Unexpected characters in class names.');
+            'error18.ces:6:12: Unexpected `@`, expecting `class name` on line 6.',
+            'Unexpected characters in class names.');
 
         start();
     });
 
     ces.download('error19.ces', function(source) {
-        /*stop();*/
+        stop();
 
         throws(function() {
             ces.ces2js(source, 'error19.ces');
@@ -254,8 +272,25 @@ asyncTest('Parsing Errors', function() {
             'error19.ces:6:17: Unexpected `ing`, expecting `;` on line 6.\n' +
             'error19.ces:11:11: Unexpected `missing`, expecting `"` on line 11.\n' +
             'error19.ces:12:17: Unexpected `newline`, expecting `"` on line 12.\n' +
-            'error19.ces:20:11: Unexpected `mi`, expecting `"` on line 20.\n' +
-            'error19.ces:21:17: Unexpected `ing`, expecting `;` on line 21.');
+            'error19.ces:14:11: Unexpected `mi`, expecting `"` on line 14.\n' +
+            'error19.ces:15:17: Unexpected `ing`, expecting `;` on line 15.',
+            'Missing " in string literal.');
+
+        start();
+    });
+
+    ces.download('error20.ces', function(source) {
+        /*stop();*/
+
+        throws(function() {
+            ces.ces2js(source, 'error20.ces');
+        }, 'error20.ces:2:6: Unexpected ` `, expecting `class name` on line 2.\n' +
+            'error20.ces:6:11: Unexpected `{`, expecting `class name` on line 6.\n' +
+            'error20.ces:10:12: Unexpected `test`, expecting `{` on line 10.\n' +
+            'error20.ces:14:12: Unexpected `.`, expecting `{` on line 14.\n' +
+            'error20.ces:19:9: Unexpected `color`, expecting `{` on line 19.\n' +
+            'error20.ces:25:1: Unexpected `EOF`, expecting `}` on line 25.',
+            'Missing class name or unexpected characters.');
 
         start();
     });

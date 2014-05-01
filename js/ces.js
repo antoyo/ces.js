@@ -1,3 +1,5 @@
+/* jshint bitwise: true, browser: true, camelcase: true, curly: true, eqeqeq: true, forin: true, freeze: true, immed: true, indent: 4, latedef: true, newcap: true, noarg: true, noempty: true, nonbsp: true, nonew: true, quotmark: single, undef: true, unused: true, strict: true */
+
 /*
  * The MIT License (MIT)
  * 
@@ -23,6 +25,8 @@
  */
 
 (function(ces) {
+    'use strict';
+
     /*
      * State of the CES parsing.
      */
@@ -34,15 +38,17 @@
         ATTRIBUTE_VALUE_START: 4,
         ATTRIBUTE_VALUE_STRING: 5,
         BODY: 6,
-        CSS_SELECTOR: 7,
-        EVENT: 8,
-        EVENT_SELECTOR: 9,
-        MULTILINE_COMMENT: 10,
-        PROPERTY_NAME: 11,
-        PROPERTY_VALUE: 12,
-        REMOVE_ATTRIBUTE: 13,
-        ROOT: 14,
-        SINGLELINE_COMMENT: 15
+        CONDITION: 7,
+        CONDITION_AFTER: 8,
+        CSS_SELECTOR: 9,
+        EVENT: 10,
+        EVENT_SELECTOR: 11,
+        MULTILINE_COMMENT: 12,
+        PROPERTY_NAME: 13,
+        PROPERTY_VALUE: 14,
+        REMOVE_ATTRIBUTE: 15,
+        ROOT: 16,
+        SINGLELINE_COMMENT: 17
     };
 
     /*
@@ -67,18 +73,27 @@
      */
     function Action() {
         this.attributes = [];
+        this.conditions = [];
         this.cssSelector = '';
         this.cssProperties = [];
         this.event = '';
         this.eventSelector = '';
         this.methods = [];
     }
-
+    
     /*
      * Add an HTML attribute to the action.
      */
     Action.prototype.addAttr = function(attribute) {
         this.attributes.push(attribute);
+    };
+
+    /*
+     * Add a condition.
+     * A condition is a check of one or more css classes. If these match, the actions between the curly braces are executed.
+     */
+    Action.prototype.addCondition = function(condition) {
+        this.conditions.push(condition);
     };
 
     /*
@@ -103,6 +118,24 @@
         this.remove = false;
         this.value = '';
     }
+
+    /*
+     * Class to store a condition.
+     */
+    function Condition() {
+        Action.call(this);
+
+        this.classes = [];
+    }
+
+    Condition.prototype = Object.create(Action.prototype);
+
+    /*
+     * Add a class condition.
+     */
+    Condition.prototype.addClass = function(classCondition) {
+        this.classes.push(classCondition);
+    };
 
     /*
      * Class to store a CSS property.
@@ -144,35 +177,100 @@
     }
 
     /*
-     * Convert the CES actions to JavaScript.
+     * Convert a CES action to JavaScript
      */
-    function actions2js(actions) {
-        var action;
+    function action2js(action, selector, prefix, suffix) {
         var errorMessage = '';
         var i;
-        var isDomReady;
-        var j;
         var js = '';
         var method;
         var name;
         var propertyPrefix;
+        var value;
+        for(i = 0 ; i < action.methods.length ; ++i) {
+            method = action.methods[i];
+            js += prefix;
+            if(isMacroMethod(method.name)) {
+                try {
+                    js += methods[method.name].body(selector, method.parameter, method.context);
+                }
+                catch(exception) {
+                    errorMessage += exception + '\n';
+                }
+            }
+            else {
+                if(typeof method.parameter !== 'undefined') {
+                    js += '        ces.call("' + method.name + '", ' + selector + ', "' + addSlashes(method.parameter) + '", event);\n';
+                }
+                else {
+                    js += '        ces.call("' + method.name + '", ' + selector + ', event);\n';
+                }
+            }
+            js += suffix;
+        }
+        for(i = 0 ; i < action.cssProperties.length ; ++i) {
+            name = action.cssProperties[i].name;
+            value = action.cssProperties[i].value;
+            propertyPrefix = value.substr(0, 2);
+            js += prefix;
+            if('+=' === propertyPrefix || '-=' === propertyPrefix) {
+                value = value.substr(2);
+                js += '        var value = parseFloat(getComputedStyle(' + selector + ').getPropertyValue("' + name + '"));\n';
+                js += '        value ' + propertyPrefix + ' ' + parseFloat(value) + ';\n';
+                js += '        ' + selector + '.style.setProperty("' + name + '", value + "px");\n';
+            }
+            else {
+                js += '        ' + selector + '.style.setProperty("' + name + '", "' + addSlashes(value) + '");\n';
+            }
+            js += suffix;
+        }
+        for(i = 0 ; i < action.attributes.length ; ++i) {
+            name = action.attributes[i].name;
+            //TODO: problem name.length == 0.
+            js += prefix;
+            if(action.attributes[i].remove) {
+                js += '        ' + selector + '.removeAttribute("' + name + '");\n';
+            }
+            else {
+                value = action.attributes[i].value;
+                js += '        ' + selector + '.setAttribute("' + name + '", "' + value + '");\n';
+            }
+            js += suffix;
+        }
+        if(errorMessage.length > 0) {
+            throw errorMessage.substring(0, errorMessage.length - 1);
+        }
+        return js;
+    }
+
+    /*
+     * Convert the CES actions to JavaScript.
+     */
+    function actions2js(actions) {
+        var action;
+        var condition;
+        var i;
+        var isDomReady;
+        var j;
+        var js = '';
         var prefix;
         var selector;
         var suffix;
-        var value;
         for(i = 0 ; i < actions.length ; ++i) {
             action = actions[i];
-            isDomReady = 'dom' == action.eventSelector && 'ready' == action.event;
+            isDomReady = 'dom' === action.eventSelector && 'ready' === action.event;
             js += '(function() {\n';
             js += 'var attributes = {};\n';
             js += 'var callback;\n';
+            js += 'var i;\n';
+            js += 'var j;\n';
             if(!isDomReady) {
                 js += 'var elements = document.querySelectorAll("' + addSlashes(action.eventSelector) + '");\n';
-                js += 'for(var i = 0 ; i < elements.length ; ++i) {\n';
+                js += 'for(i = 0 ; i < elements.length ; ++i) {\n';
             }
             js += '    callback = function(event) {\n';
             if(action.cssSelector.length > 0) {
-                prefix = '        for(var j = 0 ; j < selectedElements.length ; ++j) {\n';
+                prefix = '        for(j = 0 ; j < selectedElements.length ; ++j) {\n';
                 selector = 'selectedElements[j]';
                 suffix = '        }\n';
                 if(!isDomReady) {
@@ -187,57 +285,23 @@
                 selector = 'this';
                 suffix = '';
             }
-            for(j = 0 ; j < action.methods.length ; ++j) {
-                method = action.methods[j];
+            js += action2js(action, selector, prefix, suffix);
+            if(action.conditions.length > 0) {
+                js += 'var elementClasses = [];\n';
                 js += prefix;
-                if(isMacroMethod(method.name)) {
-                    try {
-                        js += methods[method.name].body(selector, method.parameter, method.context);
-                    }
-                    catch(exception) {
-                        errorMessage += exception + '\n';
-                    }
-                }
-                else {
-                    if(typeof method.parameter !== 'undefined') {
-                        js += '        ces.call("' + method.name + '", ' + selector + ', "' + addSlashes(method.parameter) + '", event);\n';
-                    }
-                    else {
-                        js += '        ces.call("' + method.name + '", ' + selector + ', event);\n';
-                    }
-                }
+                js += 'elementClasses.push(ces.toArray(' + selector + '.classList));\n';
                 js += suffix;
             }
-            for(j = 0 ; j < action.cssProperties.length ; ++j) {
-                name = action.cssProperties[j].name;
-                value = action.cssProperties[j].value;
-                propertyPrefix = value.substr(0, 2);
+            for(j = 0 ; j < action.conditions.length ; ++j) {
+                condition = action.conditions[j];
+                js += 'j = 0;\n';
                 js += prefix;
-                if('+=' == propertyPrefix || '-=' == propertyPrefix) {
-                    value = value.substr(2);
-                    js += '        var value = parseFloat(getComputedStyle(' + selector + ').getPropertyValue("' + name + '"));\n';
-                    js += '        value ' + propertyPrefix + ' ' + parseFloat(value) + ';\n';
-                    js += '        ' + selector + '.style.setProperty("' + name + '", value + "px");\n';
-                }
-                else {
-                    js += '        ' + selector + '.style.setProperty("' + name + '", "' + addSlashes(value) + '");\n';
-                }
+                js += 'if(elementClasses[j].indexOf("' + condition.classes.join('") != -1 && elementClasses[j].indexOf("') + '") != -1) {\n';
+                js += action2js(condition, selector, prefix, suffix);
+                js += '}\n';
                 js += suffix;
             }
-            for(j = 0 ; j < action.attributes.length ; ++j) {
-                name = action.attributes[j].name;
-                //TODO: problem name.length == 0.
-                js += prefix;
-                if(action.attributes[j].remove) {
-                    js += '        ' + selector + '.removeAttribute("' + name + '");\n';
-                }
-                else {
-                    value = action.attributes[j].value;
-                    js += '        ' + selector + '.setAttribute("' + name + '", "' + value + '");\n';
-                }
-                js += suffix;
-            }
-            if('this' != selector) {
+            if('this' !== selector) {
                 js += '        if(attributes.generatedId == this.id) {\n';
                 js += '            this.id = "";\n';
                 js += '        }\n';
@@ -261,10 +325,6 @@
                 js += '}\n';
             }
             js += '})();\n';
-        }
-
-        if(errorMessage.length > 0) {
-            throw errorMessage.substring(0, errorMessage.length - 1);
         }
 
         return js;
@@ -326,7 +386,7 @@
         var xhr = new XMLHttpRequest();
         xhr.open('GET', url);
         xhr.addEventListener('readystatechange', function() {
-            if(xhr.readyState == xhr.DONE) {
+            if(xhr.readyState === xhr.DONE) {
                 callback(xhr.responseText);
             }
         }, false);
@@ -372,8 +432,8 @@
         while(i < source.length && isWhiteSpace(source[i])) {
             ++i;
         }
-        if(i == source.length) {
-            return "EOF";
+        if(i === source.length) {
+            return 'EOF';
         }
         if(isIdentifier(source[i])) {
             start = i;
@@ -417,7 +477,7 @@
         switch(state) {
             case State.ATTRIBUTE_END:
                 i = source.indexOf(']', i);
-                if(-1 == i) {
+                if(-1 === i) {
                     i = source.indexOf(';', start) - 1;
                     offset = 1;
                 }
@@ -433,14 +493,13 @@
             case State.PROPERTY_NAME:
             case State.PROPERTY_VALUE:
                 i = source.indexOf(';', i);
-                if(-1 == i) {
+                if(-1 === i) {
                     i = source.indexOf('}', start) - 1;
                     offset = 1;
                 }
                 break;
+            case State.CONDITION_AFTER:
             case State.EVENT:
-                i = source.indexOf('{', i);
-                break;
             case State.EVENT_SELECTOR:
                 i = source.indexOf('{', i);
                 break;
@@ -480,21 +539,21 @@
      * Check if a defined method exists by name.
      */
     function isMethod(name) {
-        return Object.keys(methods).indexOf(name) != -1;
+        return Object.keys(methods).indexOf(name) !== -1;
     }
 
     /*
      * Check if the specified character is a new line.
      */
     function isNewLine(character) {
-        return '\n' == character;
+        return '\n' === character;
     }
 
     /*
      * Check if the specified character is a white space (space, new line or tab).
      */
     function isWhiteSpace(character) {
-        return ' ' == character || isNewLine(character) || '\t' == character;
+        return ' ' === character || isNewLine(character) || '\t' === character;
     }
 
     /*
@@ -505,7 +564,7 @@
         var i;
         var length = scriptTags.length;
         for(i = 0 ; i < length ; ++i) {
-            if('text/ces' == scriptTags[i].type) {
+            if('text/ces' === scriptTags[i].type) {
                 if(scriptTags[i].hasAttribute('src')) {
                     loadHandler(scriptTags[i].src, scriptTags[i].getAttribute('src'), scriptTags[i]);
                 }
@@ -534,14 +593,12 @@
         var attribute = new Attribute();
         var char = '';
         var columnNumber = 0;
+        var condition = new Condition();
         var cssProperty = new CssProperty();
-        var endsWithQuote = false;
-        var error;
-        var errorIndex;
         var errors = [];
         var expecting = '';
-        var hasAttributeValue = false;
         var i;
+        var inCondition = false;
         var lastState = State.ROOT;
         var lineNumber = 1;
         var message = '';
@@ -552,6 +609,15 @@
         var start = 0;
         var state = State.ROOT;
         var token = '';
+
+        function addAction(actionFunction, parameter) {
+            if(inCondition) {
+                condition[actionFunction](parameter);
+            }
+            else {
+                action[actionFunction](parameter);
+            }
+        }
 
         function addError(expecting, newState, token) {
             var data = {};
@@ -599,15 +665,15 @@
         for(i = 0 ; i < source.length ; ++i) {
             char = source[i];
             ++columnNumber;
-            if('/' == char && 0 === quote.length) {
+            if('/' === char && 0 === quote.length) {
                 if((i + 1 < source.length)) {
-                    if('*' == source[i + 1]) {
+                    if('*' === source[i + 1]) {
                         lastState = state;
                         state = State.MULTILINE_COMMENT;
                         ++i;
                         continue;
                     }
-                    else if('/' == source[i + 1]) {
+                    else if('/' === source[i + 1]) {
                         lastState = state;
                         state = State.SINGLELINE_COMMENT;
                         ++i;
@@ -617,7 +683,7 @@
             }
             switch(state) {
                 case State.ATTRIBUTE_AFTER_END:
-                    if(';' == char) {
+                    if(';' === char) {
                         state = State.BODY;
                     }
                     else if(!isWhiteSpace(char)) {
@@ -625,7 +691,7 @@
                     }
                     break;
                 case State.ATTRIBUTE_END:
-                    if(']' == char) {
+                    if(']' === char) {
                         action.addAttr(attribute);
                         attribute = new Attribute();
                         state = State.ATTRIBUTE_AFTER_END;
@@ -635,13 +701,13 @@
                     }
                     break;
                 case State.ATTRIBUTE_NAME:
-                    if('=' == char) {
+                    if('=' === char) {
                         attribute.name = source.substring(start, i).trim();
                         start = i + 1;
                         state = State.ATTRIBUTE_VALUE_START;
                         needsAttributeValue = true;
                     }
-                    else if(']' == char) {
+                    else if(']' === char) {
                         attribute.name = source.substring(start, i).trim();
                         action.addAttr(attribute);
                         attribute = new Attribute();
@@ -656,7 +722,7 @@
                         state = State.ATTRIBUTE_NAME;
                         start = i;
                     }
-                    else if('-' == char) {
+                    else if('-' === char) {
                         state = State.REMOVE_ATTRIBUTE;
                         start = i + 1;
                     }
@@ -665,7 +731,7 @@
                     }
                     break;
                 case State.ATTRIBUTE_VALUE_START:
-                    if('"' == char) {
+                    if('"' === char) {
                         state = State.ATTRIBUTE_VALUE_STRING;
                         start = i + 1;
                     }
@@ -674,7 +740,7 @@
                     }
                     break;
                 case State.ATTRIBUTE_VALUE_STRING:
-                    if('"' == char && '\\' != source[i - 1]) {
+                    if('"' === char && '\\' !== source[i - 1]) {
                         state = State.ATTRIBUTE_END;
                         attribute.value = source.substring(start, i).trim();
                     }
@@ -683,25 +749,64 @@
                     }
                     break;
                 case State.BODY:
-                    if(isLetter(char) || '-' == char) {
+                    if(isLetter(char) || '-' === char) {
                         state = State.PROPERTY_NAME;
                         start = i;
                     }
-                    else if('[' == char) {
-                        state = State.ATTRIBUTE_START;
-                    }
-                    else if('}' == char) {
-                        actions.push(action);
-                        action = new Action();
-                        state = State.ROOT;
+                    else if('.' === char) {
+                        state = State.CONDITION;
                         start = i + 1;
                     }
-                    else if(!isWhiteSpace(char) && ';' != char) {
+                    else if('[' === char) {
+                        state = State.ATTRIBUTE_START;
+                    }
+                    else if('}' === char) {
+                        if(inCondition) {
+                            action.addCondition(condition);
+                            condition = new Condition();
+                            inCondition = false;
+                        }
+                        else {
+                            actions.push(action);
+                            action = new Action();
+                            state = State.ROOT;
+                        }
+                        start = i + 1;
+                    }
+                    else if(!isWhiteSpace(char) && ';' !== char) {
                         addError('css property name or html attribute');
                     }
                     break;
+                case State.CONDITION:
+                    if('.' === char) {
+                        condition.addClass(source.substring(start, i));
+                        start = i + 1;
+                    }
+                    else if(isWhiteSpace(char) || '{' === char) {
+                        if(start === i) {
+                            addError('class name', State.CONDITION_AFTER, char);
+                        }
+                        else {
+                            condition.addClass(source.substring(start, i));
+                            state = State.CONDITION_AFTER;
+                        }
+                        if('{' === char) {
+                            --i;
+                        }
+                    }
+                    break;
+                case State.CONDITION_AFTER:
+                    if('{' === char) {
+                        state = State.BODY;
+                        inCondition = true;
+                    }
+                    else if(!isWhiteSpace(char)) {
+                        addError('{');
+                        inCondition = true;
+                    }
+                    break;
                 case State.CSS_SELECTOR:
-                    if(('\'' == char || '"' == char)) {
+                    if(('\'' === char || '"' === char)) {
                         if(quote.length === 0) {
                             quote = char;
                         }
@@ -709,16 +814,16 @@
                             quote = '';
                         }
                     }
-                    else if(0 === quote.length && '{' == char) {
+                    else if(0 === quote.length && '{' === char) {
                         action.cssSelector = replaceNewLines(source.substring(start, i)).trim();
                         state = State.BODY;
                     }
-                    else if(0 === quote.length && '}' == char) {
+                    else if(0 === quote.length && '}' === char) {
                         addError('{', State.ROOT);
                     }
                     break;
                 case State.EVENT:
-                    if('{' == char) {
+                    if('{' === char) {
                         getEvent();
                         state = State.BODY;
                     }
@@ -730,7 +835,7 @@
                     }
                     break;
                 case State.EVENT_SELECTOR:
-                    if(('\'' == char || '"' == char)) {
+                    if(('\'' === char || '"' === char)) {
                         if(quote.length === 0) {
                             quote = char;
                         }
@@ -738,17 +843,17 @@
                             quote = '';
                         }
                     }
-                    else if(quote.length === 0 && '$' == char) {
+                    else if(quote.length === 0 && '$' === char) {
                         action.eventSelector = replaceNewLines(source.substring(start, i)).trim();
                         start = i + 1;
                         state = State.EVENT;
                     }
-                    else if(quote.length === 0 && ('{' == char || '}' == char)) {
+                    else if(quote.length === 0 && ('{' === char || '}' === char)) {
                         addError('$event');
                     }
                     break;
                 case State.MULTILINE_COMMENT:
-                    if(('*' == char) && (i + 1 < source.length) && '/' == source[i + 1]) {
+                    if(('*' === char) && (i + 1 < source.length) && '/' === source[i + 1]) {
                         state = lastState;
                         start = i + 2;
                         ++i;
@@ -756,7 +861,7 @@
                     break;
                 case State.PROPERTY_NAME:
                     token = source.substring(start, i).trim();
-                    if(':' == char) {
+                    if(':' === char) {
                         if(isMethod(token)) {
                             method = new JsMethod(token);
                             method.context = getContext();
@@ -767,7 +872,7 @@
                         state = State.PROPERTY_VALUE;
                         start = i + 1;
                     }
-                    else if(';' == char && isMethod(token)) {
+                    else if(';' === char && isMethod(token)) {
                         method = new JsMethod(token);
                         method.context = getContext();
                         action.addMethod(method);
@@ -776,16 +881,16 @@
                     }
                     else if(!isIdentifier(char) && !isWhiteSpace(char)) {
                         addError(':');
-                        if(';' != source[i]) {
+                        if(';' !== source[i]) {
                             state = State.PROPERTY_VALUE;
                         }
                     }
                     break;
                 case State.PROPERTY_VALUE:
-                    if('\\' == char && 0 !== quote.length) {
+                    if('\\' === char && 0 !== quote.length) {
                         skipNext = !skipNext;
                     }
-                    else if(!skipNext && ('\'' == char || '"' == char)) {
+                    else if(!skipNext && ('\'' === char || '"' === char)) {
                         if(quote.length === 0) {
                             quote = char;
                         }
@@ -793,22 +898,24 @@
                             quote = '';
                         }
                     }
-                    else if(0 === quote.length && ';' == char) {
+                    else if(0 === quote.length && ';' === char) {
                         if(method !== null) {
                             method.parameter = source.substring(start, i).trim();
-                            action.addMethod(method);
+                            /*action.addMethod(method);*/
+                            addAction('addMethod', method);
                             method = null;
                         }
                         else if(cssProperty.name.length > 0) {
                             cssProperty.value = source.substring(start, i).trim();
-                            action.addCss(cssProperty);
+                            /*action.addCss(cssProperty);*/
+                            addAction('addCss', cssProperty);
                             cssProperty = new CssProperty();
                         }
                         state = State.BODY;
                     }
-                    else if(0 === quote.length && (']' == char || '[' == char || '{' == char || '}' == char)) {
+                    else if(0 === quote.length && (']' === char || '[' === char || '{' === char || '}' === char)) {
                         addError(';');
-                        if(';' != source[i]) {
+                        if(';' !== source[i]) {
                             state = State.ROOT;
                             ++i;
                         }
@@ -818,7 +925,7 @@
                     }
                     break;
                 case State.REMOVE_ATTRIBUTE:
-                    if(']' == char) {
+                    if(']' === char) {
                         attribute.remove = true;
                         attribute.name = source.substring(start, i);
                         action.addAttr(attribute);
@@ -835,7 +942,7 @@
                     }
                     break;
                 case State.ROOT:
-                    if(isLetter(char) || '#' == char || '.' == char) {
+                    if(isLetter(char) || '#' === char || '.' === char) {
                         state = State.EVENT_SELECTOR;
                         start = i;
                     }
@@ -857,7 +964,7 @@
             }
         }
 
-        if(State.ROOT != state) {
+        if(State.ROOT !== state) {
             switch(state) {
                 case State.BODY:
                     expecting = '}';
@@ -875,11 +982,9 @@
         }
         
         if(errors.length > 0) {
-            for(errorIndex in errors) {
-                error = errors[errorIndex];
-                message += createErrorMessage(error, error.unexpected, error.expecting) + '\n';
-            }
-            message = message.substring(0, message.length - 1);
+            message = errors.map(function(error) {
+                return createErrorMessage(error, error.unexpected, error.expecting);
+            }).join('\n');
             throw message;
         }
 
@@ -899,7 +1004,7 @@
             char = selector[i];
             switch(state) {
                 case SelectorState.ATTRIBUTE_NAME:
-                    if('=' == char) {
+                    if('=' === char) {
                         tokens.push(selector.substring(start, i));
                         state = SelectorState.ATTRIBUTE_VALUE;
                         tokens.push(char);
@@ -907,7 +1012,7 @@
                     }
                     break;
                 case SelectorState.ATTRIBUTE_VALUE:
-                    if(']' == char) {
+                    if(']' === char) {
                         tokens.push(selector.substring(start, i));
                         state = SelectorState.ROOT;
                         tokens.push(char);
@@ -931,15 +1036,15 @@
                     }
                     break;
                 case SelectorState.ROOT:
-                    if('.' == char) {
+                    if('.' === char) {
                         start = i;
                         state = SelectorState.CLASS;
                     }
-                    else if('#' == char) {
+                    else if('#' === char) {
                         start = i;
                         state = SelectorState.ID;
                     }
-                    else if('[' == char) {
+                    else if('[' === char) {
                         tokens.push(char);
                         start = i + 1;
                         state = SelectorState.ATTRIBUTE_NAME;
@@ -978,7 +1083,7 @@
             attributes.generatedId = generateId();
             eventTarget.id = attributes.generatedId;
         }
-        while(-1 != (index = tokens.indexOf('this'))) {
+        while(-1 !== (index = tokens.indexOf('this'))) {
             tokens[index] = '#' + eventTarget.id;
         }
         selector = tokens.join('');
@@ -993,6 +1098,20 @@
     }
 
     /*
+     * Get the values of an object as an array.
+     */
+    ces.toArray = function(object) {
+        var array = [];
+        var index;
+        for(index in object) {
+            if(object.hasOwnProperty(index)) {
+                array.push(object[index]);
+            }
+        }
+        return array;
+    };
+
+    /*
      * Validate a string literal.
      */
     function validateStringLiteral(string, context) {
@@ -1000,15 +1119,15 @@
         var end = false;
         var i;
         var skipNext = false;
-        if('"' != string[0]) {
+        if('"' !== string[0]) {
             throw createErrorMessage(context, getNextToken(string, 0), '"');
         }
         for(i = 1 ; i < string.length ; ++i) {
             char = string[i];
-            if('\\' == char) {
+            if('\\' === char) {
                 skipNext = !skipNext;
             }
-            else if(!skipNext && '"' == char) {
+            else if(!skipNext && '"' === char) {
                 end = true;
             }
             else if(!end && isNewLine(char)) {
@@ -1038,7 +1157,7 @@
     /*
      * Prevent the default action on the selected element.
      */
-    ces.addMethod('prevent', function(selector) {
+    ces.addMethod('prevent', function() {
         return 'event.preventDefault();\n';
     }, true);
 
@@ -1053,7 +1172,7 @@
      * Change the text content of the selected element.
      */
     ces.addMethod('text', function(selector, text, context) {
-        if('+=' == text.substr(0, 2)) {
+        if('+=' === text.substr(0, 2)) {
             validateStringLiteral(text.substr(2).trim(), context);
             return selector + '.textContent ' + text + ';\n';
         }
@@ -1067,7 +1186,7 @@
      * Change the text content of the selected element.
      */
     ces.addMethod('html', function(selector, html, context) {
-        if('+=' == html.substr(0, 2)) {
+        if('+=' === html.substr(0, 2)) {
             validateStringLiteral(html.substr(2).trim(), context);
             return selector + '.innerHTML ' + html + ';\n';
         }
@@ -1093,19 +1212,19 @@
         var start = 0;
 
         for(i = 0 ; i < classes.length ; ++i) {
-            end = classes.length - 1 == i;
+            end = classes.length - 1 === i;
             char = classes[i];
-            if(!hasAction && '-' == char) {
+            if(!hasAction && '-' === char) {
                 classAction = 'remove';
                 start = i + 1;
                 hasAction = true;
             }
-            else if(!hasAction && '+' == char) {
+            else if(!hasAction && '+' === char) {
                 classAction = 'add';
                 start = i + 1;
                 hasAction = true;
             }
-            else if(!hasAction && '!' == char) {
+            else if(!hasAction && '!' === char) {
                 classAction = 'toggle';
                 start = i + 1;
                 hasAction = true;
@@ -1120,7 +1239,7 @@
                 classAction = 'add';
                 hasAction = false;
             }
-            else if(!isIdentifier(char) && '!' != char && '-' != char && '+' != char) {
+            else if(!isIdentifier(char) && '!' !== char && '-' !== char && '+' !== char) {
                 context.columnNumber = columnNumber;
                 context.lineNumber = lineNumber;
                 throw createErrorMessage(context, char, 'class name');
@@ -1146,4 +1265,4 @@
 
 }(window.ces = window.ces || {}));
 
-window.addEventListener('load', ces.load, false);
+window.addEventListener('load', window.ces.load, false);
