@@ -1,3 +1,7 @@
+dom $ready .ready-text {
+    text: += "Ready";
+}
+
 dom $ready .secret-text {
     class: +hidden;
 }

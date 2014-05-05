@@ -308,16 +308,13 @@
             }
             js += '   };\n';
             if(isDomReady) {
-                js += '    var toDispatch = false;\n';
-                js += '    if(document.readyState == "complete") {\n';
+                js += '    var toDispatch = document.readyState == "complete";\n';
+                js += '    document.addEventListener("DOMContentLoaded", callback, false);\n';
+                js += '    if(toDispatch) {\n';
                 js += '        var event = document.createEvent("HTMLEvents");\n';
                 js += '        event.initEvent("DOMContentLoaded", true, true);\n';
                 js += '        event.eventName = "DOMContentLoaded";\n';
-                js += '        toDispatch = true;\n';
-                js += '    }\n';
-                js += '    document.addEventListener("DOMContentLoaded", callback, false);\n';
-                js += '    if(toDispatch) {\n';
-                js += '        document.dispatchEvent(event);\n';
+                js += '        callback(event);\n';
                 js += '    }\n';
             }
             else {

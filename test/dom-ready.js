@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  */
 
-asyncTest('Window selector', function() {
-    expect(2);
+asyncTest('Dom Ready Event', function() {
+    expect(4);
 
     ces.download('test18.ces', function(source) {
         var body = document.querySelector('#qunit-fixture');
@@ -40,13 +40,21 @@ asyncTest('Window selector', function() {
         secretText.className = 'secret-text';
         secret.appendChild(secretText);
 
+        var readyText = document.createElement('div');
+        readyText.className = 'ready-text';
+        body.appendChild(readyText);
+
         var js = ces.ces2js(source, 'test18.ces');
 
         ok(!secretText.classList.contains('hidden'), 'Does not contain class "hidden".');
 
+        equal(readyText.textContent, '', 'Text is set to "".');
+
         ces.execute(js);
 
         ok(secretText.classList.contains('hidden'), 'Contain class "hidden".');
+
+        equal(readyText.textContent, 'Ready', 'Text is set to "Ready".');
 
         start();
     });
