@@ -1176,6 +1176,10 @@
             validateStringLiteral(text.substr(2).trim(), context);
             return selector + '.textContent ' + text + ';\n';
         }
+        else if('=+' === text.substr(0, 2)) {
+            validateStringLiteral(text.substr(2).trim(), context);
+            return selector + '.textContent = ' + text.substr(2).trim() + ' + ' + selector + '.textContent;\n';
+        }
         else {
             validateStringLiteral(text.trim(), context);
             return selector + '.textContent = ' + text + ';\n';
@@ -1189,6 +1193,10 @@
         if('+=' === html.substr(0, 2)) {
             validateStringLiteral(html.substr(2).trim(), context);
             return selector + '.innerHTML ' + html + ';\n';
+        }
+        else if('=+' == html.substr(0, 2)) {
+            validateStringLiteral(html.substr(2).trim(), context);
+            return selector + '.innerHTML = ' + html.substr(2).trim() + ' + ' + selector + '.innerHTML;\n';
         }
         else {
             validateStringLiteral(html.trim(), context);

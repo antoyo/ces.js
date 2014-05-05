@@ -23,3 +23,11 @@
 #quoteHTML $click {
     html: "Quote <strong>\"</strong> value";
 }
+
+#prependButton $click #prependParagraph {
+    text: =+ "prepended content ";
+}
+
+#prependHTMLButton $click #prependHTMLParagraph {
+    html: =+ "<strong>prepend</strong> ";
+}

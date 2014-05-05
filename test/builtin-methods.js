@@ -22,7 +22,7 @@
  */
 
 asyncTest('Built-in Methods', function() {
-    expect(23);
+    expect(29);
 
     ces.download('test.ces', function(source) {
         stop();
@@ -146,6 +146,26 @@ asyncTest('Built-in Methods', function() {
         quoteHTML.innerHTML = 'Quote HTML';
         body.appendChild(quoteHTML);
 
+        var prependButton = document.createElement('button');
+        prependButton.id = 'prependButton';
+        prependButton.textContent = 'Button';
+        body.appendChild(prependButton);
+
+        var prependParagraph = document.createElement('p');
+        prependParagraph.id = 'prependParagraph';
+        prependParagraph.innerHTML = 'Text';
+        body.appendChild(prependParagraph);
+
+        var prependHTMLButton = document.createElement('button');
+        prependHTMLButton.id = 'prependHTMLButton';
+        prependHTMLButton.textContent = 'HTML Button';
+        body.appendChild(prependHTMLButton);
+
+        var prependHTMLParagraph = document.createElement('p');
+        prependHTMLParagraph.id = 'prependHTMLParagraph';
+        prependHTMLParagraph.innerHTML = 'HTML';
+        body.appendChild(prependHTMLParagraph);
+
         var js = ces.ces2js(source, 'test20.ces');
         ces.execute(js);
 
@@ -192,6 +212,26 @@ asyncTest('Built-in Methods', function() {
         trigger(quoteHTML, 'click');
 
         equal(quoteHTML.innerHTML, 'Quote <strong>\"</strong> value', 'HTML is set to "Quote <strong>\"</strong> value".')
+
+        equal(prependParagraph.textContent, 'Text', 'Text is set to "Text".');
+
+        trigger(prependButton, 'click');
+
+        equal(prependParagraph.textContent, 'prepended content Text', 'Text is set to "prepended content Text".');
+
+        trigger(prependButton, 'click');
+
+        equal(prependParagraph.textContent, 'prepended content prepended content Text', 'Text is set to "prepended content prepended content Text".');
+
+        equal(prependHTMLParagraph.innerHTML, 'HTML', 'HTML is set to "HTML".');
+
+        trigger(prependHTMLButton, 'click');
+
+        equal(prependHTMLParagraph.innerHTML, '<strong>prepend</strong> HTML', 'HTML is set to "<strong>prepend</strong> HTML".');
+
+        trigger(prependHTMLButton, 'click');
+
+        equal(prependHTMLParagraph.innerHTML, '<strong>prepend</strong> <strong>prepend</strong> HTML', 'HTML is set to "<strong>prepend</strong> <strong>prepend</strong> HTML".');
 
         start();
     });
