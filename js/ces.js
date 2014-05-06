@@ -260,7 +260,7 @@
             action = actions[i];
             isDomReady = 'dom' === action.eventSelector && 'ready' === action.event;
             js += '(function() {\n';
-            js += 'var attributes = {};\n';
+            js += 'var ids = [];\n';
             js += 'var callback;\n';
             js += 'var i;\n';
             js += 'var j;\n';
@@ -274,7 +274,7 @@
                 selector = 'selectedElements[j]';
                 suffix = '        }\n';
                 if(!isDomReady) {
-                    js += '        var selectedElements = document.querySelectorAll(ces.processSelector("' + addSlashes(action.cssSelector) + '", this, attributes));\n';
+                    js += '        var selectedElements = document.querySelectorAll(ces.processSelector("' + addSlashes(action.cssSelector) + '", this, ids));\n';
                 }
                 else {
                     js += '        var selectedElements = document.querySelectorAll("' + addSlashes(action.cssSelector) + '");\n';
@@ -302,8 +302,12 @@
                 js += suffix;
             }
             if('this' !== selector) {
-                js += '        if(attributes.generatedId == this.id) {\n';
-                js += '            this.id = "";\n';
+                js += '        while(ids.length > 0) {\n';
+                js += '            var element = document.querySelector("#" + ids[0]);\n';
+                js += '            if(element != null) {\n';
+                js += '                element.id = "";\n';
+                js += '            }\n';
+                js += '            ids.splice(0, 1);\n';
                 js += '        }\n';
             }
             js += '   };\n';
@@ -417,6 +421,20 @@
         var lastIndex = characters.length - 1;
         for(i = 0 ; i < 20 ; ++i) {
             id += characters[Math.floor(Math.random() * lastIndex)];
+        }
+        return id;
+    }
+
+    /*
+     * Get or generate an id for the specified element.
+     * If a new id is generated, add it to the ids array.
+     */
+    function getId(element, ids) {
+        var id = element.id;
+        if(0 === id.length) {
+            id = generateId();
+            ids.push(id);
+            element.id = id;
         }
         return id;
     }
@@ -1071,19 +1089,39 @@
     /*
      * Process the CSS selector.
      * It will change the this keyword by an id representing the event target.
-     * In case the element does not have an ID, it should be manually removed after it is not needed anymore.
+     * It also support the :parent token to select the parent of the current element.
+     * In case the element does not have an ID, it should be manually removed after it is not needed anymore (with the information returned in the ids parameter).
+     * The ids paramater is an array of the element's id which need to remove its id.
      */
-    ces.processSelector = function(selector, eventTarget, attributes) {
+    ces.processSelector = function(selector, eventTarget, ids) {
+        var delta;
+        var element;
+        var i;
+        var id;
         var index;
+        var tokenCountToDelete;
         var tokens = parseSelector(selector);
-        if(0 === eventTarget.id.length) {
-            attributes.generatedId = generateId();
-            eventTarget.id = attributes.generatedId;
+        var toUpdate = -1 !== tokens.indexOf('this');
+        if(toUpdate) {
+            while(-1 !== (index = tokens.indexOf('this'))) {
+                delta = 1;
+                tokenCountToDelete = 0;
+                element = eventTarget;
+                while(index + delta + 1 < tokens.length && ':' === tokens[index + delta] && 'parent' === tokens[index + delta + 1]) {
+                    tokenCountToDelete += 2;
+                    element = element.parentNode;
+                    delta += 2;
+                }
+                id = getId(element, ids);
+
+                tokens[index] = '#' + id;
+
+                for(i = 1 ; i <= tokenCountToDelete ; ++i) {
+                    tokens[index + i] = '';
+                }
+            }
+            selector = tokens.join('');
         }
-        while(-1 !== (index = tokens.indexOf('this'))) {
-            tokens[index] = '#' + eventTarget.id;
-        }
-        selector = tokens.join('');
         return selector;
     };
 

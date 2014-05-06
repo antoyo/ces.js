@@ -1,0 +1,7 @@
+.myButton $click this:parent {
+    background-color: green;
+}
+
+.myButton $click this:parent:parent:parent {
+    background-color: red;
+}

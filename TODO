@@ -1,5 +1,11 @@
 Allow the "this" token at the start of a condition (for selection of multiple elements).
 
+Support the wrap method from jQuery. For instance:
+.button {
+    wrap: "<span class=\"ui-button-text\"></span>";
+}
+And use it in plugin widgets.
+
 Write some CES script. For instance:
 Create jQuery UI widgets with CES and add needed feature (accordion, autocomplete, button, datepicker, dialog, menu, progressbar, slider, spinner, tabs, tooltip).
 

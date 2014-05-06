@@ -23,7 +23,7 @@
  */
 
 asyncTest('this Keyword', function() {
-    expect(46);
+    expect(52);
 
     ces.download('test16.ces', function(source) {
         stop();
@@ -101,6 +101,8 @@ asyncTest('this Keyword', function() {
     });
 
     ces.download('test17.ces', function(source) {
+        stop();
+
         var body = document.querySelector('#qunit-fixture');
 
         var div1 = document.createElement('div');
@@ -199,6 +201,39 @@ asyncTest('this Keyword', function() {
         trigger(links, 'click');
 
         equal(link1.style.getPropertyValue('color'), 'red', 'Property color is set to "red".');
+
+        start();
+    });
+
+    ces.download('test26.ces', function(source) {
+        var body = document.querySelector('#qunit-fixture');
+
+        var div = document.createElement('div');
+        body.appendChild(div);
+
+        var div2 = document.createElement('div');
+        div.appendChild(div2);
+
+        var div3 = document.createElement('div');
+        div2.appendChild(div3);
+
+        var button = document.createElement('button');
+        button.className = 'myButton';
+        button.textContent = 'Button';
+        div3.appendChild(button);
+
+        var js = ces.ces2js(source, 'test26.ces');
+        ces.execute(js);
+
+        ok(!div.style.getPropertyValue('background-color'), 'Property background-color is not set.');
+        ok(!div2.style.getPropertyValue('background-color'), 'Property background-color is not set.');
+        ok(!div3.style.getPropertyValue('background-color'), 'Property background-color is not set.');
+
+        trigger(button, 'click');
+
+        equal(div.style.getPropertyValue('background-color'), 'red', 'Property background-color is set to "red".');
+        ok(!div2.style.getPropertyValue('background-color'), 'Property background-color is not set.');
+        equal(div3.style.getPropertyValue('background-color'), 'green', 'Property background-color is set to "green".');
 
         start();
     });
