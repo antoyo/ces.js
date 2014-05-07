@@ -201,7 +201,7 @@
             }
             else {
                 if(typeof method.parameter !== 'undefined') {
-                    js += '        ces.call("' + method.name + '", ' + selector + ', "' + addSlashes(method.parameter) + '", event);\n';
+                    js += '        ces.call("' + method.name + '", ' + selector + ', ' + method.parameter + ', event);\n';
                 }
                 else {
                     js += '        ces.call("' + method.name + '", ' + selector + ', event);\n';
@@ -1341,6 +1341,43 @@
         validateStringLiteral(url, context);
         return 'location.href = "' + url.substr(1, url.length - 2) + '";\n';
     }, true);
+
+    /*
+     * Wrap the element with the specified html structure.
+     */
+    ces.addMethod('wrap', function(selector, html) {
+        var element = document.createElement('div');
+        element.innerHTML = html;
+        var newElement = element.childNodes[0];
+        var target = newElement;
+        while(target.childNodes.length > 0) {
+            target = target.childNodes[0];
+        }
+
+        selector.parentNode.replaceChild(newElement, selector);
+        target.appendChild(selector);
+    });
+
+    /*
+     * Wrap the inner html of the element with the specified html structure.
+     */
+    ces.addMethod('wrapInner', function(selector, html) {
+        var child;
+        var element = document.createElement('div');
+        element.innerHTML = html;
+        var newElement = element.childNodes[0];
+        var target = newElement;
+        while(target.childNodes.length > 0) {
+            target = target.childNodes[0];
+        }
+
+        while(selector.childNodes.length > 0) {
+            child = selector.removeChild(selector.childNodes[0]);
+            target.appendChild(child);
+        }
+
+        selector.appendChild(newElement);
+    });
 
 }(window.ces = window.ces || {}));
 

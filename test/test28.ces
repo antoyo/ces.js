@@ -1,0 +1,17 @@
+#wrap $click {
+    wrap: "<div></div>";
+}
+
+#wrapped $click {
+    text: += "test";
+    wrap: "<div class=\"backred\"><div class=\"blue\"><div class=\"underline\"></div></div></div>";
+}
+
+#innerWrap $click {
+    wrapInner: "<div></div>";
+}
+
+#innerWrapped $click {
+    html: += "test";
+    wrapInner: "<div class=\"backred\"><div class=\"blue\"><div class=\"underline\"></div></div></div>";
+}

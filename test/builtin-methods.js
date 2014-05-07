@@ -22,7 +22,7 @@
  */
 
 asyncTest('Built-in Methods', function() {
-    expect(29);
+    expect(49);
 
     ces.download('test.ces', function(source) {
         stop();
@@ -237,6 +237,8 @@ asyncTest('Built-in Methods', function() {
     });
 
     ces.download('test21.ces', function(source) {
+        stop();
+
         var body = document.querySelector('#qunit-fixture');
 
         var ghPar = document.createElement('par');
@@ -247,6 +249,81 @@ asyncTest('Built-in Methods', function() {
         var js = ces.ces2js(source, 'test21.ces');
 
         ok(js.indexOf('location.href = "https://github.com/";') != -1, 'Redirect is in the generated JavaScript.');
+
+        start();
+    });
+
+    ces.download('test28.ces', function(source) {
+        var body = document.querySelector('#qunit-fixture');
+
+        var wrap = document.createElement('div');
+        wrap.id = 'wrap';
+        wrap.textContent = 'Div';
+        body.appendChild(wrap);
+
+        var wrapped = document.createElement('div');
+        wrapped.id = 'wrapped';
+        wrapped.textContent = 'Div';
+        body.appendChild(wrapped);
+
+        var innerWrap = document.createElement('div');
+        innerWrap.id = 'innerWrap';
+        innerWrap.textContent = 'Div';
+        body.appendChild(innerWrap);
+
+        var innerWrapped = document.createElement('div');
+        innerWrapped.id = 'innerWrapped';
+        innerWrapped.textContent = 'Div';
+        body.appendChild(innerWrapped);
+
+        var js = ces.ces2js(source, 'test28.ces');
+        ces.execute(js);
+
+        ok(body.innerHTML.indexOf('<div id="wrap">Div</div>') !== -1, 'Wrap div is present.');
+        ok(body.innerHTML.indexOf('<div id="wrapped">Div</div>') !== -1, 'Wrapped div is present.');
+
+        trigger(wrap, 'click');
+
+        ok(body.innerHTML.indexOf('<div><div id="wrap">Div</div></div>') !== -1, 'Wrap div is present.');
+        ok(body.innerHTML.indexOf('<div id="wrapped">Div</div>') !== -1, 'Wrapped div is present.');
+
+        trigger(wrap, 'click');
+
+        ok(body.innerHTML.indexOf('<div><div><div id="wrap">Div</div></div></div>') !== -1, 'Wrap div is present.');
+        ok(body.innerHTML.indexOf('<div id="wrapped">Div</div>') !== -1, 'Wrapped div is present.');
+
+        trigger(wrapped, 'click');
+
+        ok(body.innerHTML.indexOf('<div><div><div id="wrap">Div</div></div></div>') !== -1, 'Wrap div is present.');
+        ok(body.innerHTML.indexOf('<div class="backred"><div class="blue"><div class="underline"><div id="wrapped">Divtest</div></div></div></div>') !== -1, 'Wrapped div is present.');
+
+        trigger(wrapped, 'click');
+
+        ok(body.innerHTML.indexOf('<div><div><div id="wrap">Div</div></div></div>') !== -1, 'Wrap div is present.');
+        ok(body.innerHTML.indexOf('<div class="backred"><div class="blue"><div class="underline"><div class="backred"><div class="blue"><div class="underline"><div id="wrapped">Divtesttest</div></div></div></div></div></div></div>') !== -1, 'Wrapped div is present.');
+
+        ok(body.innerHTML.indexOf('<div id="innerWrap">Div</div>') !== -1, 'Inner Wrap div is present.');
+        ok(body.innerHTML.indexOf('<div id="innerWrapped">Div</div>') !== -1, 'Inner Wrapped div is present.');
+
+        trigger(innerWrap, 'click');
+
+        ok(body.innerHTML.indexOf('<div id="innerWrap"><div>Div</div></div>') !== -1, 'Inner Wrap div is present.');
+        ok(body.innerHTML.indexOf('<div id="innerWrapped">Div</div>') !== -1, 'Inner Wrapped div is present.');
+
+        trigger(innerWrap, 'click');
+
+        ok(body.innerHTML.indexOf('<div id="innerWrap"><div><div>Div</div></div></div>') !== -1, 'Inner Wrap div is present.');
+        ok(body.innerHTML.indexOf('<div id="innerWrapped">Div</div>') !== -1, 'Inner Wrapped div is present.');
+
+        trigger(innerWrapped, 'click');
+
+        ok(body.innerHTML.indexOf('<div id="innerWrap"><div><div>Div</div></div></div>') !== -1, 'Inner Wrap div is present.');
+        ok(body.innerHTML.indexOf('<div id="innerWrapped"><div class="backred"><div class="blue"><div class="underline">Divtest</div></div></div></div>') !== -1, 'Inner Wrapped div is present.');
+
+        trigger(innerWrapped, 'click');
+
+        ok(body.innerHTML.indexOf('<div id="innerWrap"><div><div>Div</div></div></div>') !== -1, 'Inner Wrap div is present.');
+        ok(body.innerHTML.indexOf('<div id="innerWrapped"><div class="backred"><div class="blue"><div class="underline"><div class="backred"><div class="blue"><div class="underline">Divtest</div></div></div>test</div></div></div></div>') !== -1, 'Inner Wrapped div is present.');
 
         start();
     });

@@ -82,7 +82,7 @@ asyncTest('JS Methods', function() {
         });
 
         ces.addMethod('content', function(selector, content) {
-            selector.textContent = content.substr(1, content.length - 2);
+            selector.textContent = content;
         });
 
         ces.addMethod('content2', function(selector, content) {

@@ -1,13 +1,7 @@
-Allow to create new selector method (like :parent) with parameters.
+Allow to create custom selector method (like :parent) with parameters.
 
-Support the wrap method from jQuery. For instance:
-.button {
-    wrap: "<span class=\"ui-button-text\"></span>";
-}
-And use it in plugin widgets.
-
-Write some CES script. For instance:
-Create jQuery UI widgets with CES and add needed feature (accordion, autocomplete, button, datepicker, dialog, menu, progressbar, slider, spinner, tabs, tooltip).
+Write some CES script and add needed features. For instance:
+Create jQuery UI widgets with CES (accordion, autocomplete, button, datepicker, dialog, menu, progressbar, slider, spinner, tabs, tooltip).
 
 Use JSHint to check the JavaScript source code.
 Tests with other web browser.
