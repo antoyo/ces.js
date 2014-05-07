@@ -1,0 +1,73 @@
+//Button, Checkbox.
+dom $ready .button {
+    class: +ui-button +ui-widget +ui-state-default +ui-corner-all +ui-button-text-only;
+    wrapInner: "<span class=\"ui-button-text\"></span>";
+}
+
+.button, .checkbox + label, .radio + label $focus {
+    class: +ui-state-focus;
+}
+
+.button, .checkbox + label, .radio + label $blur {
+    class: -ui-state-focus;
+}
+
+.button, .checkbox + label, .radio + label $mouseenter {
+    class: +ui-state-hover;
+}
+
+.button, .checkbox + label, .radio + label $mouseleave {
+    class: -ui-state-hover;
+}
+
+.button $mousedown {
+    class: +ui-state-active;
+}
+
+.button $mouseup {
+    class: -ui-state-active;
+}
+
+dom $ready .checkbox, .radio {
+    class: +ui-helper-hidden-accessible;
+}
+
+dom $ready .checkbox + label, .radio + label {
+    class: +ui-button +ui-widget +ui-state-default +ui-corner-all +ui-button-text-only;
+    wrapInner: "<span class=\"ui-button-text\"></span>";
+}
+
+.checkbox + label $click {
+    class: !ui-state-active;
+}
+
+//Buttonset.
+dom $ready .buttonset {
+    class: +ui-buttonset;
+}
+
+dom $ready .buttonset .button:first-child, .buttonset .checkbox:first-child + label, .buttonset .radio:first-child + label {
+    class: +ui-corner-left;
+}
+
+dom $ready .buttonset .button:last-child, .buttonset .checkbox + label:last-child, .buttonset .radio + label:last-child {
+    class: +ui-corner-right;
+}
+
+dom $ready .buttonset .button, .buttonset .checkbox + label, .buttonset .radio + label {
+    class: -ui-corner-all;
+}
+
+//Radio.
+.radio + label $click this:parent > .radio + label{
+    class: -ui-state-active;
+
+    this {
+        class: +ui-state-active;
+    }
+}
+
+//Toolbar.
+dom $ready .toolbar {
+    class: +ui-widget-header +ui-corner-all;
+}
