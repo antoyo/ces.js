@@ -23,7 +23,7 @@
  */
 
 asyncTest('this Keyword', function() {
-    expect(52);
+    expect(58);
 
     ces.download('test16.ces', function(source) {
         stop();
@@ -228,12 +228,18 @@ asyncTest('this Keyword', function() {
         ok(!div.style.getPropertyValue('background-color'), 'Property background-color is not set.');
         ok(!div2.style.getPropertyValue('background-color'), 'Property background-color is not set.');
         ok(!div3.style.getPropertyValue('background-color'), 'Property background-color is not set.');
+        equal(div.id, '', 'Id is not set.');
+        equal(div2.id, '', 'Id is not set.');
+        equal(div3.id, '', 'Id is not set.');
 
         trigger(button, 'click');
 
         equal(div.style.getPropertyValue('background-color'), 'red', 'Property background-color is set to "red".');
         ok(!div2.style.getPropertyValue('background-color'), 'Property background-color is not set.');
         equal(div3.style.getPropertyValue('background-color'), 'green', 'Property background-color is set to "green".');
+        equal(div.id, '', 'Id is not set.');
+        equal(div2.id, '', 'Id is not set.');
+        equal(div3.id, '', 'Id is not set.');
 
         start();
     });

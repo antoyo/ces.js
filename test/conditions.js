@@ -22,7 +22,7 @@
  */
 
 asyncTest('Conditions', function() {
-    expect(69);
+    expect(117);
 
     ces.download('test22.ces', function(source) {
         stop();
@@ -173,6 +173,8 @@ asyncTest('Conditions', function() {
     });
 
     ces.download('test25.ces', function(source) {
+        stop();
+
         var body = document.querySelector('#qunit-fixture');
 
         var button = document.createElement('button');
@@ -227,6 +229,118 @@ asyncTest('Conditions', function() {
         equal(button2.style.getPropertyValue('color'), 'yellow', 'Color is set to "yellow".');
         ok(!button2.classList.contains('red'), 'Class red is not set.');
         ok(!button2.classList.contains('blue'), 'Class blue is not set.');
+
+        start();
+    });
+
+    ces.download('test27.ces', function(source) {
+        var body = document.querySelector('#qunit-fixture');
+
+        var colorRadio1 = document.createElement('div');
+        colorRadio1.classList.add('color-radio');
+        colorRadio1.textContent = 'Color Radio 1';
+        body.appendChild(colorRadio1);
+
+        var colorRadio2 = document.createElement('div');
+        colorRadio2.classList.add('color-radio');
+        colorRadio2.textContent = 'Color Radio 2';
+        body.appendChild(colorRadio2);
+
+        var colorRadio3 = document.createElement('div');
+        colorRadio3.classList.add('color-radio');
+        colorRadio3.textContent = 'Color Radio 3';
+        body.appendChild(colorRadio3);
+
+        var colorRadio4 = document.createElement('div');
+        colorRadio4.classList.add('color-radio');
+        colorRadio4.classList.add('background-blue');
+        colorRadio4.textContent = 'Color Radio 4';
+        body.appendChild(colorRadio4);
+
+        var colorRadio5 = document.createElement('div');
+        colorRadio5.classList.add('color-radio');
+        colorRadio5.classList.add('background-blue');
+        colorRadio5.textContent = 'Color Radio 5';
+        body.appendChild(colorRadio5);
+
+        var colorRadio6 = document.createElement('div');
+        colorRadio6.classList.add('color-radio');
+        colorRadio6.classList.add('background-blue');
+        colorRadio6.textContent = 'Color Radio 6';
+        body.appendChild(colorRadio6);
+
+        var js = ces.ces2js(source, 'test27.ces');
+        ces.execute(js);
+
+        ok(!colorRadio1.style.getPropertyValue('background-color'), 'Background color is not set.');
+        ok(!colorRadio2.style.getPropertyValue('background-color'), 'Background color is not set.');
+        ok(!colorRadio3.style.getPropertyValue('background-color'), 'Background color is not set.');
+        ok(!colorRadio4.style.getPropertyValue('background-color'), 'Background color is not set.');
+        ok(!colorRadio5.style.getPropertyValue('background-color'), 'Background color is not set.');
+        ok(!colorRadio6.style.getPropertyValue('background-color'), 'Background color is not set.');
+
+        trigger(colorRadio1, 'click');
+
+        equal(colorRadio1.style.getPropertyValue('background-color'), 'green', 'Background color is set to "green".');
+        equal(colorRadio2.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio3.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio4.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+
+        trigger(colorRadio2, 'click');
+
+        equal(colorRadio1.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio2.style.getPropertyValue('background-color'), 'green', 'Background color is set to "green".');
+        equal(colorRadio3.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio4.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+
+        trigger(colorRadio3, 'click');
+
+        equal(colorRadio1.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio2.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio3.style.getPropertyValue('background-color'), 'green', 'Background color is set to "green".');
+        equal(colorRadio4.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+
+        trigger(colorRadio1, 'click');
+
+        equal(colorRadio1.style.getPropertyValue('background-color'), 'green', 'Background color is set to "green".');
+        equal(colorRadio2.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio3.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio4.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+
+        trigger(colorRadio3, 'click');
+
+        equal(colorRadio1.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio2.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio3.style.getPropertyValue('background-color'), 'green', 'Background color is set to "green".');
+        equal(colorRadio4.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+
+        trigger(colorRadio2, 'click');
+
+        equal(colorRadio1.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio2.style.getPropertyValue('background-color'), 'green', 'Background color is set to "green".');
+        equal(colorRadio3.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio4.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+
+        trigger(colorRadio4, 'click');
+
+        equal(colorRadio1.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio2.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio3.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio4.style.getPropertyValue('background-color'), 'blue', 'Background color is set to "blue".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
+        equal(colorRadio5.style.getPropertyValue('background-color'), 'transparent', 'Background color is set to "transparent".');
 
         start();
     });

@@ -1,0 +1,11 @@
+.color-radio $click .color-radio {
+    background-color: transparent;
+
+    this {
+        background-color: green;
+    }
+
+    this.background-blue {
+        background-color: blue;
+    }
+}

@@ -126,6 +126,7 @@
         Action.call(this);
 
         this.classes = [];
+        this.matchThis = false;
     }
 
     Condition.prototype = Object.create(Action.prototype);
@@ -296,9 +297,19 @@
                 condition = action.conditions[j];
                 js += 'j = 0;\n';
                 js += prefix;
-                js += 'if(elementClasses[j].indexOf("' + condition.classes.join('") != -1 && elementClasses[j].indexOf("') + '") != -1) {\n';
-                js += action2js(condition, selector, prefix, suffix);
-                js += '}\n';
+                if(condition.classes.length > 0) {
+                    js += 'if(elementClasses[j].indexOf("' + condition.classes.join('") != -1 && elementClasses[j].indexOf("') + '") != -1) {\n';
+                }
+                if(condition.matchThis) {
+                    js += 'if(' + selector + ' === this) {\n';
+                }
+                js += action2js(condition, selector, '', '');
+                if(condition.matchThis) {
+                    js += '}\n';
+                }
+                if(condition.classes.length > 0) {
+                    js += '}\n';
+                }
                 js += suffix;
             }
             if('this' !== selector) {
@@ -607,6 +618,7 @@
         var actions = [];
         var attribute = new Attribute();
         var char = '';
+        var className = '';
         var columnNumber = 0;
         var condition = new Condition();
         var cssProperty = new CssProperty();
@@ -623,6 +635,7 @@
         var skipNext = false;
         var start = 0;
         var state = State.ROOT;
+        var thisCondition = false;
         var token = '';
 
         function addAction(actionFunction, parameter) {
@@ -794,15 +807,33 @@
                     break;
                 case State.CONDITION:
                     if('.' === char) {
-                        condition.addClass(source.substring(start, i));
-                        start = i + 1;
+                        if(thisCondition) {
+                            condition.matchThis = true;
+                            thisCondition = false;
+                            start = i + 1;
+                        }
+                        else {
+                            className = source.substring(start, i).trim();
+                            if(className.length > 0) {
+                                condition.addClass(source.substring(start, i).trim());
+                                start = i + 1;
+                            }
+                        }
                     }
                     else if(isWhiteSpace(char) || '{' === char) {
                         if(start === i) {
                             addError('class name', State.CONDITION_AFTER, char);
                         }
+                        else if(thisCondition) {
+                            condition.matchThis = true;
+                            thisCondition = false;
+                            start = i;
+                        }
                         else {
-                            condition.addClass(source.substring(start, i));
+                            className = source.substring(start, i).trim();
+                            if(className.length > 0) {
+                                condition.addClass(className);
+                            }
                             state = State.CONDITION_AFTER;
                         }
                         if('{' === char) {
@@ -886,6 +917,11 @@
                         }
                         state = State.PROPERTY_VALUE;
                         start = i + 1;
+                    }
+                    else if(0 === quote.length && char.match(/[ .{]/) && 'this' === source.substring(start, i).trim()) {
+                        state = State.CONDITION;
+                        thisCondition = true;
+                        --i;
                     }
                     else if(';' === char && isMethod(token)) {
                         method = new JsMethod(token);

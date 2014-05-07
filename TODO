@@ -1,4 +1,4 @@
-Allow the "this" token at the start of a condition (for selection of multiple elements).
+Allow to create new selector method (like :parent) with parameters.
 
 Support the wrap method from jQuery. For instance:
 .button {
