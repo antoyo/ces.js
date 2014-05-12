@@ -1,0 +1,104 @@
+/*
+ * Accordion
+ */
+//Initial configuration.
+dom $ready .accordion {
+    class: +ui-accordion ui-widget +ui-helper-reset;
+}
+
+dom $ready .accordion > h3 {
+    class: +ui-accordion-header +ui-helper-reset +ui-state-default +ui-corner-all +ui-accordion-icons;
+    html: =+ "<span class=\"ui-accordion-header-icon ui-icon ui-icon-triangle-1-e\"></span>";
+    [tabindex="-1"];
+}
+
+dom $ready .accordion > h3:not(:first-child) + div {
+    display: none;
+    max-height: 0;
+}
+
+dom $ready .accordion > h3:first-child > .ui-accordion-header-icon {
+    class: -ui-icon-triangle-1-e +ui-icon-triangle-1-s;
+}
+
+dom $ready .accordion > h3:first-child {
+    class: +ui-accordion-header-active +ui-state-active;
+}
+
+dom $ready .accordion > h3 + div {
+    class: +ui-accordion-content +ui-helper-reset +ui-widget-content +ui-corner-bottom +ui-accordion-content-active;
+}
+
+//Header click.
+.accordion > h3 $click this:parent > h3:not(this) + div {
+    animation-duration: 250ms;
+    animation-name: hide-blind;
+    animation-fill-mode: forwards;
+    class: -ui-accordion-content-active +ui-accordion-content-inactive;
+}
+
+.accordion > h3 $click this:parent > h3 {
+    [tabindex="-1"];
+
+    this {
+       [tabindex="0"];
+    }
+}
+
+.accordion > h3 $click this:parent > h3 {
+    class: -ui-accordion-header-active +ui-accordion-header-inactive -ui-state-active;
+
+    this {
+        class: +ui-accordion-header-active -ui-accordion-header-inactive +ui-state-active;
+    }
+}
+
+.accordion > h3 $click this + div {
+    animation-duration: 250ms;
+    animation-name: show-blind;
+    animation-fill-mode: forwards;
+    class: +ui-accordion-content-active;
+    display: block;
+}
+
+//Triangle change on header click.
+.accordion > h3 $click this:parent > h3:not(this) > .ui-accordion-header-icon {
+    class: +ui-icon-triangle-1-e -ui-icon-triangle-1-s;
+}
+
+.accordion > h3 $click this > .ui-accordion-header-icon {
+    this.ui-accordion-header-active {
+        class: -ui-icon-triangle-1-e +ui-icon-triangle-1-s;
+    }
+    
+    this.ui-accordion-header-accordion {
+        class: +ui-icon-triangle-1-e -ui-icon-triangle-1-s;
+    }
+}
+
+//Animation event.
+.accordion > h3 + div $animationend {
+    display: none;
+
+    .ui-accordion-content-active {
+        display: block;
+    }
+}
+
+//Mouse events.
+.accordion > h3 $mouseenter {
+    class: +ui-state-hover;
+}
+
+.accordion > h3 $mouseleave {
+    class: -ui-state-hover;
+}
+
+//Focus events.
+.accordion > h3 $focus {
+    class: +ui-state-focus;
+}
+
+.accordion > h3 $blur {
+    class: -ui-state-focus;
+}

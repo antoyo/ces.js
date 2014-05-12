@@ -1,31 +1,10 @@
-//Button, Checkbox.
+/*
+ * Button, Checkbox.
+ */
+//Initial configuration.
 dom $ready .button {
     class: +ui-button +ui-widget +ui-state-default +ui-corner-all +ui-button-text-only;
     wrapInner: "<span class=\"ui-button-text\"></span>";
-}
-
-.button, .checkbox + label, .radio + label $focus {
-    class: +ui-state-focus;
-}
-
-.button, .checkbox + label, .radio + label $blur {
-    class: -ui-state-focus;
-}
-
-.button, .checkbox + label, .radio + label $mouseenter {
-    class: +ui-state-hover;
-}
-
-.button, .checkbox + label, .radio + label $mouseleave {
-    class: -ui-state-hover;
-}
-
-.button $mousedown {
-    class: +ui-state-active;
-}
-
-.button $mouseup {
-    class: -ui-state-active;
 }
 
 dom $ready .checkbox, .radio {
@@ -37,11 +16,42 @@ dom $ready .checkbox + label, .radio + label {
     wrapInner: "<span class=\"ui-button-text\"></span>";
 }
 
+//Focus events.
+.button, .checkbox + label, .radio + label $focus {
+    class: +ui-state-focus;
+}
+
+.button, .checkbox + label, .radio + label $blur {
+    class: -ui-state-focus;
+}
+
+//Hover ovents.
+.button, .checkbox + label, .radio + label $mouseenter {
+    class: +ui-state-hover;
+}
+
+.button, .checkbox + label, .radio + label $mouseleave {
+    class: -ui-state-hover;
+}
+
+//Mouse events.
+.button $mousedown {
+    class: +ui-state-active;
+}
+
+.button $mouseup {
+    class: -ui-state-active;
+}
+
+//Click event.
 .checkbox + label $click {
     class: !ui-state-active;
 }
 
-//Buttonset.
+/*
+ * Buttonset.
+ */
+//Initial configuration.
 dom $ready .buttonset {
     class: +ui-buttonset;
 }
@@ -59,7 +69,7 @@ dom $ready .buttonset .button, .buttonset .checkbox + label, .buttonset .radio +
 }
 
 //Radio.
-.radio + label $click this:parent > .radio + label{
+.radio + label $click this:parent > .radio + label {
     class: -ui-state-active;
 
     this {

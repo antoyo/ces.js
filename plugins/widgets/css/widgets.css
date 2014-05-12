@@ -1,0 +1,17 @@
+@keyframes show-blind {
+    from {
+        max-height: 0;
+    }
+    to {
+        max-height: 100px;
+    }
+}
+
+@keyframes hide-blind {
+    from {
+        max-height: 100px;
+    }
+    to {
+        max-height: 0;
+    }
+}

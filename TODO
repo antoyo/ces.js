@@ -1,5 +1,3 @@
-Allow to create custom selector method (like :parent) with parameters.
-
 Write some CES script and add needed features. For instance:
 Create jQuery UI widgets with CES (accordion, autocomplete, button, datepicker, dialog, menu, progressbar, slider, spinner, tabs, tooltip).
 
